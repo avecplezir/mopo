@@ -183,6 +183,21 @@ def restore_pool_contiguous(replay_pool, load_path, policy_type=None):
 
     print(f'number of samples in each {policy_type} partition:', [(policies == i).sum() for i in range(int(policies.max()) + 1)])
 
+    # throw_away_proportion = 0.25
+    # print('len(states)', len(states))
+    # print('indices', indices)
+    # indices = np.random.choice(len(states), int(len(states) * (1 - throw_away_proportion)), replace=False)
+
+    ind_n = 0
+    if ind_n == 0:
+        indices = np.array([14, 5, 7, 10, 11, 12, 15, 1, 0, 16, 13, 8])
+    elif ind_n == 1:
+        indices = np.array([5, 16, 2, 3, 1, 13, 7, 15, 11, 6, 0, 8])
+
+    states = states[indices]
+    next_states = next_states[indices]
+    print('states', states.shape)
+
     replay_pool.add_samples({
         'observations': states,
         'actions': actions,
