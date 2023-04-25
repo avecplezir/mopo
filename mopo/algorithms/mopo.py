@@ -195,7 +195,16 @@ class MOPO(RLAlgorithm):
             self.exp_name = self._log_dir.split('/')[-2]
             self.wlogger = Wandb(wparams, group_name=self.exp_name, name=self.exp_seed, project='_'+self.domain+'_policy')
 
+        ind_n = 0
+        if ind_n == 0:
+            self.obs_indices = np.array([14, 5, 7, 10, 11, 12, 15, 1, 0, 16, 13, 8])
+        elif ind_n == 1:
+            self.obs_indices = np.array([5, 16, 2, 3, 1, 13, 7, 15, 11, 6, 0, 8])
+
+        throw_away_proportion = 0.25
         obs_dim = np.prod(training_environment.active_observation_shape)
+        obs_dim = int(obs_dim * (1 - throw_away_proportion))
+        print('obs_dim', obs_dim)
         act_dim = np.prod(training_environment.action_space.shape)
         self._model_type = model_type
         self._identity_terminal = identity_terminal
@@ -565,7 +574,9 @@ class MOPO(RLAlgorithm):
             model_metrics = {}
         else:
             env_samples = self._pool.return_all_samples()
-            train_inputs, train_outputs, train_policies = format_samples_for_training(env_samples)
+            train_inputs, train_outputs, train_policies = format_samples_for_training(env_samples,
+                                                                                      indices=self.obs_indices)
+
             model_metrics = self._model.train(train_inputs, train_outputs, train_policies, **kwargs)
         return model_metrics
 

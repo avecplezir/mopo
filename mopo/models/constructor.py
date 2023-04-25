@@ -52,10 +52,11 @@ def construct_model(obs_dim=11, act_dim=3, rew_dim=1, hidden_dim=200, num_networ
 	print('[ BNN ] Model: {}'.format(model))
 	return model
 
-def format_samples_for_training(samples):
-	obs = samples['observations']
+def format_samples_for_training(samples, indices=None):
+	print("samples['observations']", samples['observations'].shape)
+	obs = samples['observations'][indices]
 	act = samples['actions']
-	next_obs = samples['next_observations']
+	next_obs = samples['next_observations'][indices]
 	rew = samples['rewards']
 	pol = samples['policies']
 	delta_obs = next_obs - obs
