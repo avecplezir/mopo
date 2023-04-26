@@ -53,6 +53,7 @@ class MOPO(RLAlgorithm):
             lr=3e-4,
             bnn_lr=0.001,
             improvement_threshold=0.0001,
+            mask_n=0,
             break_train_rex=False,
             reward_scale=1.0,
             target_entropy='auto',
@@ -187,7 +188,8 @@ class MOPO(RLAlgorithm):
                             repeat_dynamics_epochs=repeat_dynamics_epochs,
                             lr_decay=lr_decay,
                             bnn_batch_size=bnn_batch_size,
-                            bnn_retrain_epochs=bnn_retrain_epochs),
+                            bnn_retrain_epochs=bnn_retrain_epochs,
+                            mask_n=mask_n),
                             **kwargs}
             print('wandb self._log_dir', self._log_dir)
             self.domain = self._log_dir.split('/')[-3]
@@ -195,15 +197,13 @@ class MOPO(RLAlgorithm):
             self.exp_name = self._log_dir.split('/')[-2]
             self.wlogger = Wandb(wparams, group_name=self.exp_name, name=self.exp_seed, project='_'+self.domain+'_policy')
 
-        ind_n = 0
-        if ind_n == 0:
+        mask_n = 0
+        if mask_n == 0:
             self.obs_indices = np.array([14, 5, 7, 10, 11, 12, 15, 1, 0, 16, 13, 8])
-        elif ind_n == 1:
+        elif mask_n == 1:
             self.obs_indices = np.array([5, 16, 2, 3, 1, 13, 7, 15, 11, 6, 0, 8])
 
-        throw_away_proportion = 0.25
-        obs_dim = np.prod(training_environment.active_observation_shape)
-        obs_dim = int(obs_dim * (1 - throw_away_proportion))
+        obs_dim = len(self.obs_indices)
         print('obs_dim', obs_dim)
         act_dim = np.prod(training_environment.action_space.shape)
         self._model_type = model_type

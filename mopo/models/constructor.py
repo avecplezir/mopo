@@ -54,9 +54,12 @@ def construct_model(obs_dim=11, act_dim=3, rew_dim=1, hidden_dim=200, num_networ
 
 def format_samples_for_training(samples, indices=None):
 	print("samples['observations']", samples['observations'].shape)
-	obs = samples['observations'][indices]
+	# b_idx = np.arange(samples['observations'].shape[0])
+	print('indices', indices.shape)
+	obs = samples['observations'][:, indices]
+	print('obs', obs.shape)
 	act = samples['actions']
-	next_obs = samples['next_observations'][indices]
+	next_obs = samples['next_observations'][:, indices]
 	rew = samples['rewards']
 	pol = samples['policies']
 	delta_obs = next_obs - obs
