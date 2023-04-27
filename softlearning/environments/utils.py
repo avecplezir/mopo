@@ -14,6 +14,22 @@ ADAPTERS = {
     'gym': GymAdapter,
 }
 
+# class GymAdapter_POMDP(GymAdapter):
+#     def __init__(self, domain, task, **environment_params):
+#         super().__init__(domain, task, **environment_params)
+#         # self.active_observation_shape = 12
+#         # setattr(self, 'active_observation_shape', 12)
+#
+#     def _get_obs(self):
+#         obs = self.super()._get_obs()
+#         print('HalfCheetahEnv', obs.shape)
+#         return obs
+
+
+# ADAPTERS = {
+#     'gym': GymAdapter_POMDP,
+# }
+
 
 def get_environment(universe, domain, task, environment_params):
     if domain in env_overwrite:

@@ -1,5 +1,7 @@
 import os
+import numpy as np
 from .base_mopo import mopo_params, deepcopy
+
 
 params = deepcopy(mopo_params)
 params.update({
@@ -27,5 +29,6 @@ params['kwargs'].update({
     'repeat_dynamics_epochs': 1,
     'lr_decay': 1.0,
     'bnn_batch_size': 256,
-    'mask_n': 1
+    'obs_indices': np.array([14, 5, 7, 10, 11, 12, 15, 1, 0, 16, 13, 8]),
+    # 'obs_indices': np.array([5, 16, 2, 3, 1, 13, 7, 15, 11, 6, 0, 8]),
 })

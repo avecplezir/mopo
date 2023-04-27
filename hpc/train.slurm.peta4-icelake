@@ -77,7 +77,7 @@ application="mopo run_local examples.development \
         --rollout-length 5 \
         --exp-name default_pomdp_m1s18_mp5rl5_test \
         --dataset MIXED-RT-1 \
-        --model_load_dir HalfCheetah_MIXED-RT-1/default_pomdp_m1/s18_2023-04-25_22-22-08094npbqp"
+        --model-load-dir HalfCheetah_MIXED-RT-1/default_pomdp_m1/s18_2023-04-25_22-22-08094npbqp"
 
 #mopo run_local examples.development \
 #        --config=examples.config.d4rl.walker2d_custom \

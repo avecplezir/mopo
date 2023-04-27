@@ -48,12 +48,12 @@ class MOPO(RLAlgorithm):
             pool,
             static_fns,
             plotter=None,
+            obs_indices=None,
             tf_summaries=False,
 
             lr=3e-4,
             bnn_lr=0.001,
             improvement_threshold=0.0001,
-            mask_n=0,
             break_train_rex=False,
             reward_scale=1.0,
             target_entropy='auto',
@@ -189,7 +189,7 @@ class MOPO(RLAlgorithm):
                             lr_decay=lr_decay,
                             bnn_batch_size=bnn_batch_size,
                             bnn_retrain_epochs=bnn_retrain_epochs,
-                            mask_n=mask_n),
+                            obs_indices=obs_indices),
                             **kwargs}
             print('wandb self._log_dir', self._log_dir)
             self.domain = self._log_dir.split('/')[-3]
@@ -197,12 +197,7 @@ class MOPO(RLAlgorithm):
             self.exp_name = self._log_dir.split('/')[-2]
             self.wlogger = Wandb(wparams, group_name=self.exp_name, name=self.exp_seed, project='_'+self.domain+'_policy')
 
-        mask_n = 0
-        if mask_n == 0:
-            self.obs_indices = np.array([14, 5, 7, 10, 11, 12, 15, 1, 0, 16, 13, 8])
-        elif mask_n == 1:
-            self.obs_indices = np.array([5, 16, 2, 3, 1, 13, 7, 15, 11, 6, 0, 8])
-
+        self.obs_indices = obs_indices
         obs_dim = len(self.obs_indices)
         print('obs_dim', obs_dim)
         act_dim = np.prod(training_environment.action_space.shape)
@@ -273,7 +268,7 @@ class MOPO(RLAlgorithm):
         self._store_extra_policy_info = store_extra_policy_info
 
         observation_shape = self._training_environment.active_observation_shape
-        print('observation_shape', observation_shape.shape)
+        print('observation_shape', observation_shape)
         action_shape = self._training_environment.action_space.shape
 
         assert len(observation_shape) == 1, observation_shape
