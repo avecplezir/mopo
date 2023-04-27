@@ -59,6 +59,7 @@ class BNN:
         self.params = params
         self.break_train_rex = params.get('break_train_rex')
         print('self.break_train_rex', self.break_train_rex)
+        self.obs_indices = params.get('obs_indices', None)
 
         self.train_bnn_only = params.get('train_bnn_only', None)
         if self.train_bnn_only:
@@ -742,6 +743,11 @@ class BNN:
             inputs (np.ndarray): An array of input vectors in rows. See above for behavior.
             factored (bool): See above for behavior.
         """
+        # print('predicting!')
+        # print('inputs.shape', inputs.shape)
+        # inputs = inputs[:, self.obs_indices]
+        # print('inputs.shape', inputs.shape)
+
         if len(inputs.shape) == 2:
             if factored:
                 return self.sess.run(

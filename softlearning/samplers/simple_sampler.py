@@ -45,6 +45,8 @@ class SimpleSampler(BaseSampler):
                 self._reset_state_vector = self.env.unwrapped.state_vector()
             ####
 
+        print('self.policy', self.policy)
+
         action = self.policy.actions_np([
             self.env.convert_to_active_observation(
                 self._current_observation)[None]

@@ -218,7 +218,8 @@ class MOPO(RLAlgorithm):
                                       lr_decay=lr_decay, log_dir=self._log_dir,
                                       train_bnn_only=train_bnn_only, rex_type=rex_type,
                                       policy_type=policy_type, bnn_lr=bnn_lr, improvement_threshold=improvement_threshold,
-                                      break_train_rex=break_train_rex)
+                                      break_train_rex=break_train_rex,
+                                      obs_indices=self.obs_indices)
         self._static_fns = static_fns
         self.fake_env = FakeEnv(self._model, self._static_fns, penalty_coeff=penalty_coeff,
                                 penalty_learned_var=penalty_learned_var)
@@ -272,6 +273,7 @@ class MOPO(RLAlgorithm):
         self._store_extra_policy_info = store_extra_policy_info
 
         observation_shape = self._training_environment.active_observation_shape
+        print('observation_shape', observation_shape.shape)
         action_shape = self._training_environment.action_space.shape
 
         assert len(observation_shape) == 1, observation_shape

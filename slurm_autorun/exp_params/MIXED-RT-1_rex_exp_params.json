@@ -1,0 +1,20 @@
+[
+{
+"config": "halfcheetah_custom_rl",
+"dataset": "MIXED-RT-1",
+"rollout_length": 5,
+"mopo_penalty_coeff": 5,
+"seed": 1,
+"model_load_dir": "HalfCheetah_MIXED-RT-1/default_pomdp_m11/s18_2023-04-25_22-28-448d50i1xe",
+"exp_name": "default_pomdp_m11s18_mp5rl5"
+},
+{
+"config": "halfcheetah_custom_rl",
+"dataset": "MIXED-RT-1",
+"rollout_length": 5,
+"mopo_penalty_coeff": 5,
+"seed": 1,
+"model_load_dir": "HalfCheetah_MIXED-RT-1/default_pomdp_m1/s18_2023-04-25_22-22-08094npbqp",
+"exp_name": "default_pomdp_m1s18_mp5rl5"
+}
+]

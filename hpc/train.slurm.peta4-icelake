@@ -58,14 +58,26 @@ source ~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/README.mopo.activate
 #        --rollout-batch-size 25000 \
 #        --model-load-dir Humanoid_Humanoid-Mixed-Novice/default-2048/s12_2023-04-13_11-32-35sizc9185"
 
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom \
+#        --cpus=1 --trial-cpus=1 \
+#        --checkpoint-frequency=100 \
+#        --seed 18 \
+#        --rex-beta=0 \
+#        --exp-name default_pomdp_m1 \
+#        --dataset MIXED-RT-1"
+
+
 application="mopo run_local examples.development \
-        --config=examples.config.d4rl.halfcheetah_custom \
+        --config=examples.config.d4rl.halfcheetah_custom_rl \
         --cpus=1 --trial-cpus=1 \
         --checkpoint-frequency=100 \
         --seed 18 \
-        --rex-beta=0 \
-        --exp-name default_pomdp_m1 \
-        --dataset MIXED-RT-1"
+        --penalty-coeff 5 \
+        --rollout-length 5 \
+        --exp-name default_pomdp_m1s18_mp5rl5_test \
+        --dataset MIXED-RT-1 \
+        --model_load_dir HalfCheetah_MIXED-RT-1/default_pomdp_m1/s18_2023-04-25_22-22-08094npbqp"
 
 #mopo run_local examples.development \
 #        --config=examples.config.d4rl.walker2d_custom \
