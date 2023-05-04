@@ -28,7 +28,7 @@ def get_sampler_from_variant(variant, *args, **kwargs):
     sampler_kwargs = deepcopy(sampler_params.get('kwargs', {}))
 
     sampler = SAMPLERS[sampler_type](
-        *sampler_args, *args, **sampler_kwargs, **kwargs)
+        *sampler_args, *args, **sampler_kwargs, **kwargs, obs_indices=variant['obs_indices'])
 
     return sampler
 

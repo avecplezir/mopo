@@ -18,6 +18,7 @@ class SimpleSampler(BaseSampler):
         self._n_episodes = 0
         self._current_observation = None
         self._total_samples = 0
+        self.obs_indices = kwargs['obs_indices']
 
     def _process_observations(self,
                               observation,
@@ -98,9 +99,14 @@ class SimpleSampler(BaseSampler):
     def random_batch(self, batch_size=None, **kwargs):
         batch_size = batch_size or self._batch_size
         observation_keys = getattr(self.env, 'observation_keys', None)
-
-        return self.pool.random_batch(
+        batch = self.pool.random_batch(
             batch_size, observation_keys=observation_keys, **kwargs)
+        print('SimpleSampler random_batch batch', batch)
+        for key in batch.keys():
+            if 'observations' in key:
+                batch[key][:, self.obs_indices] = 0
+
+        return batch
 
     def get_diagnostics(self):
         diagnostics = super(SimpleSampler, self).get_diagnostics()
