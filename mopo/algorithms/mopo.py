@@ -267,7 +267,8 @@ class MOPO(RLAlgorithm):
         self._reparameterize = reparameterize
         self._store_extra_policy_info = store_extra_policy_info
 
-        observation_shape = self._training_environment.active_observation_shape
+        observation_shape = (len(self.obs_indices),)
+        # observation_shape = self._training_environment.active_observation_shape
         print('observation_shape', observation_shape)
         action_shape = self._training_environment.action_space.shape
 
@@ -344,7 +345,9 @@ class MOPO(RLAlgorithm):
             holdout_policy=self._holdout_policy,
             repeat_dynamics_epochs=self._repeat_dynamics_epochs
         )
+
         model_metrics.update(model_train_metrics)
+
         self._log_model()
         gt.stamp('epoch_train_model')
 
@@ -376,12 +379,12 @@ class MOPO(RLAlgorithm):
                 # _real_ratio is 0.05 by default
                 if timestep % self._model_train_freq == 0 and self._real_ratio < 1.0:
                     self._training_progress.pause()
+                    # Todo: return back
                     self._set_rollout_length()
                     self._reallocate_model_pool()
                     model_rollout_metrics = self._rollout_model(rollout_batch_size=self._rollout_batch_size, deterministic=self._deterministic)
-                    model_metrics.update(model_rollout_metrics)
+                    # model_metrics.update(model_rollout_metrics)
                     time_step_global = self._epoch_length * self._epoch + timestep
-                    # self.wlogger.wandb.log({**{'rollout_model/' + key: value for key, value in model_rollout_metrics.items()}, **{'rollout_model/time_step_global': time_step_global}}, step=time_step_global)
 
                     gt.stamp('epoch_rollout_model')
                     self._training_progress.resume()
@@ -413,7 +416,7 @@ class MOPO(RLAlgorithm):
                 evaluation_metrics = {}
 
             # Evaluate the policy against the learned environment model
-            model_metrics.update(self._eval_model())
+            # model_metrics.update(self._eval_model()) #todo: add this back in
 
             gt.stamp('epoch_after_hook')
 
@@ -583,6 +586,9 @@ class MOPO(RLAlgorithm):
         ))
         batch = self.sampler.random_batch(rollout_batch_size)
         obs = batch['observations']
+        if len(obs) > len(self.obs_indices):
+            obs = obs[:, self.obs_indices]
+
         steps_added = []
         unpenalised_rewards = []
         penalised_rewards = []
@@ -612,7 +618,9 @@ class MOPO(RLAlgorithm):
             pol = np.zeros((len(obs), 1))
 
             samples = {'observations': obs, 'actions': act, 'next_observations': next_obs, 'rewards': rew, 'terminals': term, 'policies': pol, 'penalties': pen}
+            print('samples', samples)
             self._model_pool.add_samples(samples)
+            print('after adding samples')
 
             nonterm_mask = ~term.squeeze(-1)
             if nonterm_mask.sum() == 0:

@@ -1,4 +1,6 @@
 from copy import deepcopy
+from gym.spaces import Box,Dict
+import numpy as np
 
 from . import (
     simple_replay_pool,
@@ -23,10 +25,15 @@ def get_replay_pool_from_variant(variant, env, *args, **kwargs):
     replay_pool_type = replay_pool_params['type']
     replay_pool_kwargs = deepcopy(replay_pool_params['kwargs'])
 
-    print("FFFFF env.observation_space", env.observation_space.shape)
+    print("FFFFF env.observation_space", env.observation_space)
+    print('replay_pool_type', replay_pool_type)
+    obs_indices = variant['algorithm_params']['kwargs']['obs_indices']
+    observation_space = Dict({'observations': Box(low=-np.inf, high=np.inf, shape=(len(obs_indices), ), dtype=np.float64)})
+    print('observation_space', observation_space)
+
     replay_pool = POOL_CLASSES[replay_pool_type](
         *args,
-        observation_space=env.observation_space,
+        observation_space=observation_space,
         action_space=env.action_space,
         **replay_pool_kwargs,
         **kwargs)

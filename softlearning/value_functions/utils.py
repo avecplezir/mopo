@@ -27,15 +27,15 @@ def get_Q_function_from_variant(variant, env, *args, **kwargs):
     Q_kwargs = deepcopy(Q_params['kwargs'])
 
 
-    # obs_indices = variant['algorithm_params']['kwargs']['obs_indices']
-    # observation_shape = (len(obs_indices), )
+    obs_indices = variant['algorithm_params']['kwargs']['obs_indices']
+    observation_shape = (len(obs_indices), )
 
     preprocessor_params = Q_kwargs.pop('preprocessor_params', None)
     preprocessor = get_preprocessor_from_params(env, preprocessor_params)
 
     print('env.active_observation_shape', env.active_observation_shape)
     return VALUE_FUNCTIONS[Q_type](
-        observation_shape=env.active_observation_shape,
+        observation_shape=observation_shape,
         action_shape=env.action_space.shape,
         *args,
         observation_preprocessor=preprocessor,
