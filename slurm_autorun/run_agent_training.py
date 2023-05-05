@@ -48,8 +48,12 @@ class MopoAgentExp:
         rollout_batch_size=None,
         model_load_dir=None,
         rex_beta=-1,
+        rex=1,
+        train_bnn_only=1,
+        rex_type='var',
+        policy_type='default',
 
-    ) -> None:
+            ) -> None:
         """ This object is used to define a MOPO experiment.
         """
         # Parameters that must always be specified by the user
@@ -57,6 +61,10 @@ class MopoAgentExp:
         self.mopo_penalty_coeff = mopo_penalty_coeff
         self.rollout_length = rollout_length
         self.dataset = dataset
+        self.rex = rex
+        self.train_bnn_only = train_bnn_only
+        self.rex_type = rex_type
+        self.policy_type = policy_type
 
         # Parameters with defaults, or values that are taken from the dynamics experiment
         self.exp_name = exp_name
@@ -92,6 +100,10 @@ class MopoAgentExp:
                 "dataset": self.dataset,
                 "model_load_dir": self.model_load_dir,
                 "rex_beta": self.rex_beta,
+                "rex": self.rex,
+                "train_bnn_only": self.train_bnn_only,
+                "rex_type": self.rex_type,
+                "policy_type": self.policy_type,
             }
         else:
             return {

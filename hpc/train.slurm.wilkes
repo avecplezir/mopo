@@ -38,12 +38,12 @@ application="mopo run_local examples.development \
         --checkpoint-frequency=100 \
         --exp-name=rb5h1_test \
         --seed=5 \
-        --rex \
+        --rex 1 \
         --rex-beta 5 \
         --rex_type var \
         --policy_type default \
         --train_bnn_only \
-        --dataset=W-MIXED-RT-1"
+        --dataset=MIXED-RT-1"
 
 #application="mopo run_local examples.development \
 #            --config=examples.config.d4rl.walker2d_custom \

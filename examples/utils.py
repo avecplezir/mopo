@@ -347,23 +347,27 @@ def get_parser(allow_policy_list=False):
 
     parser.add_argument(
         '--rex',
-        action="store_true",
+        type=int,
+        default=0,
         help="Whether to use rex.")
 
     parser.add_argument(
         '--rex_type',
         type=str,
+        default='var',
         help="var or std")
 
     parser.add_argument(
         '--policy_type',
         type=str,
+        default=None,
         help="reward default etc")
 
     parser.add_argument(
         '--train_bnn_only',
-        action="store_true",
-        help="Whether to train only model.")
+        type=int,
+        default=1,
+        help="Whether to train only world model.")
 
     parser = add_ray_init_args(parser)
     parser = add_ray_tune_args(parser)
