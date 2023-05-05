@@ -57,6 +57,10 @@ class BNN:
         self.model_dir = params.get('model_dir', None)
         self._log_dir = params.get('log_dir', None)
         self.params = params
+        self.obs_indices = params.get('obs_indices', None)
+        self.obs_dim = params.get('obs_dim', None)
+        self.obs_availavle_ratio = 1 - len(self.obs_indices)/self.obs_dim
+        print('self.obs_availavle_ratio', self.obs_availavle_ratio)
         self.break_train_rex = params.get('break_train_rex')
         print('self.break_train_rex', self.break_train_rex)
         self.rex_type = params.get('rex_type', 'var')
@@ -977,6 +981,7 @@ class BNN:
             else:
                 policy_total_losses = 5 * tf.reduce_mean(policy_losses, axis=-1)  # compensate for the reduce sum in other policy_types by multiplying by 5
 
+        policy_total_losses = policy_total_losses / self.obs_availavle_ratio
         # Determine the variance of the losses - use boolean mask to ensure only taking variance for
         # policies which appear in the batch (i.e., some batches may not have records for all policies).
 

@@ -213,7 +213,7 @@ class MOPO(RLAlgorithm):
                                       train_bnn_only=train_bnn_only, rex_type=rex_type,
                                       policy_type=policy_type, bnn_lr=bnn_lr, improvement_threshold=improvement_threshold,
                                       break_train_rex=break_train_rex,
-                                      wlogger=None)
+                                      wlogger=None, obs_indices=obs_indices)
         self._static_fns = static_fns
         self.fake_env = FakeEnv(self._model, self._static_fns, penalty_coeff=penalty_coeff,
                                 penalty_learned_var=penalty_learned_var)
@@ -399,7 +399,7 @@ class MOPO(RLAlgorithm):
                 math.ceil(self._epoch_length / self.sampler._max_path_length))
 
             evaluation_paths = self._evaluation_paths(
-                policy, evaluation_environment, obs_indices=self._eval_indices)
+                policy, evaluation_environment, obs_indices=self.obs_indices)
             gt.stamp('evaluation_paths')
 
             if evaluation_paths:

@@ -44,14 +44,14 @@ def rollout(env,
             **kwargs):
     observation_space = env.observation_space
     action_space = env.action_space
-    obs_indices = kwargs['obs_indices']
     pool = replay_pools.SimpleReplayPool(
-        observation_space, action_space, max_size=path_length, obs_indices=obs_indices)
-    # print('rollout path_length', path_length)
+        observation_space, action_space, max_size=path_length)
+    obs_indices = kwargs['obs_indices']
     sampler = simple_sampler.SimpleSampler(
         max_path_length=path_length,
         min_pool_size=None,
-        batch_size=None)
+        batch_size=None,
+        obs_indices=obs_indices)
 
     sampler.initialize(env, policy, pool)
 
