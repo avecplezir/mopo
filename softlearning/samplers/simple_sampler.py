@@ -18,8 +18,6 @@ class SimpleSampler(BaseSampler):
         self._n_episodes = 0
         self._current_observation = None
         self._total_samples = 0
-
-        # self.obs_indices = kwargs.get('obs_indices', [3, 8, 15, 16])
         self.obs_indices = kwargs['obs_indices']
         print('SimpleSampler obs_indices', self.obs_indices)
 

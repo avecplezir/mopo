@@ -22,5 +22,6 @@ params['kwargs'].update({
     'rex_multiply': True,
     'repeat_dynamics_epochs': 1,
     'lr_decay': 1.0,
-    'bnn_batch_size': 256
+    'bnn_batch_size': 256,
+    'obs_indices': [13,],
 })

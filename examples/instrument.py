@@ -68,6 +68,13 @@ def add_command_line_args_to_variant_spec(variant_spec, command_line_args):
 
     variant_spec['restore'] = command_line_args.restore
 
+    print('add_command_line_args_to_variant_spec')
+    print('variant_spec', variant_spec)
+    print('command_line_args', command_line_args)
+    for key, value in command_line_args.items():
+        if value is not None:
+            variant_spec['run_params'][key] = value
+
     return variant_spec
 
 
