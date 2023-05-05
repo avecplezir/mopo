@@ -345,6 +345,26 @@ def get_parser(allow_policy_list=False):
         default=None,
         help="The REx penalty coefficient to use.")
 
+    parser.add_argument(
+        '--rex',
+        action="store_true",
+        help="Whether to use rex.")
+
+    parser.add_argument(
+        '--rex_type',
+        type=str,
+        help="var or std")
+
+    parser.add_argument(
+        '--policy_type',
+        type=str,
+        help="reward default etc")
+
+    parser.add_argument(
+        '--train_bnn_only',
+        action="store_true",
+        help="Whether to train only model.")
+
     parser = add_ray_init_args(parser)
     parser = add_ray_tune_args(parser)
 

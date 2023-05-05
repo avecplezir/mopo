@@ -29,13 +29,19 @@ module load rhel8/default-icl              # REQUIRED - loads the basic environm
 module load miniconda/3
 source ~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/README.mopo.activate
 
-#! Full path to application executable: 
+#! Full path to application executable:
+
+['rex', 'rex_type', 'policy_type', 'train_bnn_only']
 application="mopo run_local examples.development \
         --config=examples.config.d4rl.walker2d_custom_rl \
         --cpus=1 --trial-cpus=1 \
         --checkpoint-frequency=100 \
         --exp-name=fffff \
         --seed=5 \
+        --rex \
+        --rex_type var \
+        --policy_type default \
+        --train_bnn_only \
         --bnn-retrain-epochs=0 \
         --penalty-coeff=0.0 \
         --rollout-length=20 \
