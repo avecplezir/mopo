@@ -151,7 +151,8 @@ class FlexibleReplayPool(ReplayPool):
         self.add_samples(latest_samples)
         self._samples_since_save = 0
 
-    def return_all_samples(self):
+    def return_all_samples(self, obs_indices):
+        obs_indices
         return {
             field_name: self.fields[field_name][:self.size]
             for field_name in self.field_names

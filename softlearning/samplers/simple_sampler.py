@@ -7,7 +7,7 @@ from .base_sampler import BaseSampler
 
 
 class SimpleSampler(BaseSampler):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs, ):
         super(SimpleSampler, self).__init__(**kwargs)
 
         self._path_length = 0
@@ -18,7 +18,10 @@ class SimpleSampler(BaseSampler):
         self._n_episodes = 0
         self._current_observation = None
         self._total_samples = 0
+
+        # self.obs_indices = kwargs.get('obs_indices', [3, 8, 15, 16])
         self.obs_indices = kwargs['obs_indices']
+        print('SimpleSampler obs_indices', self.obs_indices)
 
     def _process_observations(self,
                               observation,
@@ -101,7 +104,7 @@ class SimpleSampler(BaseSampler):
         observation_keys = getattr(self.env, 'observation_keys', None)
         batch = self.pool.random_batch(
             batch_size, observation_keys=observation_keys, **kwargs)
-        print('SimpleSampler random_batch batch', batch)
+        # print('SimpleSampler random_batch batch', batch)
         for key in batch.keys():
             if 'observations' in key:
                 batch[key][:, self.obs_indices] = 0
