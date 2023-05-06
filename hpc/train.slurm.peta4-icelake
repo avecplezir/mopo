@@ -57,22 +57,22 @@ application="mopo run_local examples.development \
         --train_bnn_only  1 \
         --dataset=MIXED-RT-1"
 
-#application="mopo run_local examples.development \
-#        --config=examples.config.d4rl.walker2d_custom_rl \
-#        --cpus=1 --trial-cpus=1 \
-#        --checkpoint-frequency=100 \
-#        --exp-name=fffff \
-#        --seed=5 \
-#        --rex \
-#        --rex_type var \
-#        --policy_type default \
-#        --train_bnn_only \
-#        --bnn-retrain-epochs=0 \
-#        --penalty-coeff=0.0 \
-#        --rollout-length=20 \
-#        --rollout-batch-size=12500 \
-#        --dataset=W-MIXED-RT-1 \
-#        --model-load-dir Walker2d_W-MIXED-RT-1/rexb20/s6_2023-03-13_22-05-07i8mfaq4c"
+application="mopo run_local examples.development \
+        --config=examples.config.d4rl.halfcheetah_custom1 \
+        --cpus=1 --trial-cpus=1 \
+        --checkpoint-frequency=100 \
+        --exp-name=fffff \
+        --seed=5 \
+        --rex 1 \
+        --rex_type var \
+        --policy_type default \
+        --train_bnn_only 0 \
+        --bnn-retrain-epochs=0 \
+        --penalty-coeff=0.0 \
+        --rollout-length=20 \
+        --rollout-batch-size=12500 \
+        --dataset=MIXED-RT-1 \
+        --model-load-dir HalfCheetah_MIXED-RT-1/p1_rexb10/s38_2023-05-05_14-23-06oajg325j"
 #
 #application="mopo run_local examples.development \
 #        --config=examples.config.d4rl.halfcheetah_custom1 \

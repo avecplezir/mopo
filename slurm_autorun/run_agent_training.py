@@ -116,6 +116,10 @@ class MopoAgentExp:
                 "rollout_batch_size": self.rollout_batch_size,
                 "dataset": self.dataset,
                 "rex_beta": self.rex_beta,
+                "rex": self.rex,
+                "train_bnn_only": self.train_bnn_only,
+                "rex_type": self.rex_type,
+                "policy_type": self.policy_type,
             }
 
     @property
@@ -201,7 +205,7 @@ if __name__ == '__main__':
     # params_filepath = os.path.expanduser(
     #     "~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/slurm_autorun/exp_params/hmed_bnn_params.json")
     params_filepath = os.path.expanduser(
-        "~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/slurm_autorun/exp_params/halfcheetah_medium-v0_rex_exp_params.json")
+        "~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/slurm_autorun/exp_params/MIXED-RT-1_p15_rex_exp_params.json")
     # params_filepath = os.path.expanduser(
     #     "~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/slurm_autorun/exp_params/hopm_bnn_params.json")
 
