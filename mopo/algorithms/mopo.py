@@ -558,7 +558,7 @@ class MOPO(RLAlgorithm):
             print('[ MOPO ] Updating model pool | {:.2e} --> {:.2e}'.format(
                 self._model_pool._max_size, new_pool_size
             ))
-            samples = self._model_pool.return_all_samples()
+            samples = self._model_pool.return_all_samples(self.obs_indices)
             new_pool = SimpleReplayPool(obs_space, act_space, new_pool_size)
             new_pool.add_samples(samples)
             assert self._model_pool.size == new_pool.size
