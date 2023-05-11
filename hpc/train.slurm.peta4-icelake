@@ -52,7 +52,6 @@ application="mopo run_local examples.development \
         --penalty-coeff=5 \
         --rollout-length=5 \
         --rollout-batch-size=50000 \
-        --train_bnn_only=0 \
         --dataset=MIXED-RT-1 \
         --model-load-dir=HalfCheetah_MIXED-RT-1/default/s18_2023-04-25_18-05-59kzrwddnw"
 
