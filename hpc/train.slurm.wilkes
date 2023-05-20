@@ -41,15 +41,24 @@ source ~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/README.mopo.activate
 #            --exp-name default-1024 \
 #            --dataset W-MIXED-RT-1"
 
-application="mopo run_local examples.development \
-            --config=examples.config.d4rl.walker2d_custom_ra \
-            --gpus=1 --trial-gpus=1 \
-            --checkpoint-frequency=100 \
-            --seed 1 \
-            --rex-beta 5 \
-            --exp-name rexb5-ra-k05 \
-            --dataset W-MIXED-RT-1"
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.walker2d_custom_ra \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 1 \
+#            --rex-beta 5 \
+#            --exp-name rexb5-ra-k05 \
+#            --dataset W-MIXED-RT-1"
 
+application="mopo run_local examples.development \
+        --config=examples.config.d4rl.halfcheetah_custom \
+        --gpu=1 --trial-gpus=1 \
+        --checkpoint-frequency=100 \
+        --exp-name=default_s18_hum_branch \
+        --seed=18 \
+        --rex 0 \
+        --rex-beta 0 \
+        --dataset=MIXED-RT-1"
 
 #application="mopo run_local examples.development \
 #            --config=examples.config.d4rl.walker2d_custom_rex \
