@@ -41,6 +41,8 @@ def restore_pool_d4rl(replay_pool, name, policy_type=None):
     states, actions, next_states, rewards, dones, policies = \
         data['observations'], data['actions'], data['next_observations'], data['rewards'], data['terminals'], data['policies']
 
+    print('restore_pool_d4rl states.shape', states.shape)
+
     done_idx = 0
     for i in range(len(dones)):
         done_idx += 1

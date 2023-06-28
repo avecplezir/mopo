@@ -55,13 +55,13 @@ application="mopo run_local examples.development \
         --dataset=MIXED-RT-1 \
         --model-load-dir=HalfCheetah_MIXED-RT-1/default/s18_2023-04-25_18-05-59kzrwddnw"
 
-#application="mopo run_local examples.development \
-#        --config=examples.config.d4rl.halfcheetah_mixed \
-#        --cpus=1 --trial-cpus=1 \
-#        --checkpoint-frequency=100 \
-#        --seed 2 \
-#        --rex-beta=0 \
-#        --exp-name mopo_test_2"
+application="mopo run_local examples.development \
+        --config=examples.config.d4rl.halfcheetah_mixed \
+        --cpus=1 --trial-cpus=1 \
+        --checkpoint-frequency=100 \
+        --seed 2 \
+        --rex-beta=0 \
+        --exp-name mopo_test_2"
 #
 #application="mopo run_local examples.development \
 #        --config=examples.config.d4rl.halfcheetah_mixed_rex_r5 \
