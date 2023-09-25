@@ -46,19 +46,14 @@ source ~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/README.mopo.activate
 #        --model-load-dir Walker2d_W-MIXED-RT-1/rexb20/s6_2023-03-13_22-05-07i8mfaq4c"
 
 application="mopo run_local examples.development \
-        --config=examples.config.d4rl.halfcheetah_custom \
+        --config=examples.config.d4rl.halfcheetah_custom_b \
         --cpus=1 --trial-cpus=1  \
         --checkpoint-frequency=100 \
-        --exp-name=MIXED-RT-4 \
+        --exp-name=MIXED-RT-4-hum \
         --seed=26 \
-        --rex 0 \
-        --rex-beta 0 \
-        --rex_type var \
         --penalty-coeff=5 \
         --rollout-length=5 \
         --rollout-batch-size=50000 \
-        --policy_type default \
-        --train_bnn_only  0 \
         --dataset=MIXED-RT-4"
 
 #application="mopo run_local examples.development \
