@@ -45,27 +45,42 @@ source ~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/README.mopo.activate
 #        --dataset=W-MIXED-RT-1 \
 #        --model-load-dir Walker2d_W-MIXED-RT-1/rexb20/s6_2023-03-13_22-05-07i8mfaq4c"
 
-#application="mopo run_local examples.development \
-#        --config=examples.config.d4rl.halfcheetah_custom_r5 \
-#        --cpus=1 --trial-cpus=1  \
-#        --checkpoint-frequency=100 \
-#        --exp-name=MIXED-RT-4-hum-rex \
-#        --seed=26 \
-#        --penalty-coeff=5 \
-#        --rollout-length=5 \
-#        --rollout-batch-size=50000 \
-#        --dataset=MIXED-RT-4"
+#name=$"MIXED-RT-4"
+
+name=$"HalfCheetah-Expert-Medium30e-50-50-100k-1p"
 
 application="mopo run_local examples.development \
-        --config=examples.config.d4rl.halfcheetah_custom \
+        --config=examples.config.d4rl.halfcheetah_custom_rew \
         --cpus=1 --trial-cpus=1  \
         --checkpoint-frequency=100 \
-        --exp-name=MIXED-RT-4-hum \
+        --exp-name=$name-hum-rewb10 \
         --seed=26 \
         --penalty-coeff=5 \
         --rollout-length=5 \
         --rollout-batch-size=50000 \
-        --dataset=MIXED-RT-4"
+        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom_r5 \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-hum-r5b10 \
+#        --seed=24 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=MIXED-RT-4-hum \
+#        --seed=20 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=MIXED-RT-4"
 
 
 #application="mopo run_local examples.development \
