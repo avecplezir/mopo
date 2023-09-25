@@ -8,6 +8,7 @@ from numbers import Number
 from itertools import count
 import gtimer as gt
 import pdb
+import copy
 
 import numpy as np
 import tensorflow as tf
@@ -144,7 +145,7 @@ class MOPO(RLAlgorithm):
         print('self._log_dir', self._log_dir)
         self._writer = Writer(self._log_dir)
         if not train_bnn_only:
-            wparams = {**dict(training_environmen=training_environment,
+            self.wparams = {**dict(training_environmen=training_environment,
                             evaluation_environment=evaluation_environment,
                             policy=policy, Qs=Qs, pool=pool, static_fns=static_fns, plotter=plotter,
                             tf_summaries=tf_summaries,
@@ -193,8 +194,8 @@ class MOPO(RLAlgorithm):
             self.domain = self._log_dir.split('/')[-3]
             self.exp_seed = self._log_dir.split('/')[-1].split('_')[0]
             self.exp_name = self._log_dir.split('/')[-2]
-            print('creating wandb logger policy!!!')
-            self.wlogger = Wandb(wparams, group_name=self.exp_name, name=self.exp_seed, project='_'+self.domain+'_policy')
+            # print('creating wandb logger policy!!!')
+            # self.wlogger = Wandb(self.wparams, group_name=self.exp_name, name=self.exp_seed, project='Diversity_Policy')
 
         obs_dim = np.prod(training_environment.active_observation_shape)
         act_dim = np.prod(training_environment.action_space.shape)
@@ -303,6 +304,7 @@ class MOPO(RLAlgorithm):
                 If None, then all exploration is done using policy
             pool (`PoolBase`): Sample pool to add samples to
         """
+        print('start training')
         training_environment = self._training_environment
         evaluation_environment = self._evaluation_environment
         policy = self._policy
@@ -332,6 +334,7 @@ class MOPO(RLAlgorithm):
         # Changes made to the code mean that we can now specify `self._bnn_retrain_epochs=0`
         print('save_path', os.path.join(self._log_dir, 'models'))
         max_epochs = self._bnn_retrain_epochs if self._model.model_loaded else None
+        print('train model')
         model_train_metrics = self._train_model(
             batch_size=self._bnn_batch_size,
             max_epochs=max_epochs,
@@ -340,8 +343,10 @@ class MOPO(RLAlgorithm):
             holdout_policy=self._holdout_policy,
             repeat_dynamics_epochs=self._repeat_dynamics_epochs
         )
+
         model_metrics.update(model_train_metrics)
         self._log_model()
+        print('finished training model')
         gt.stamp('epoch_train_model')
 
         # If we are only learning a dynamics model, tell Ray to stop training at this point
@@ -349,6 +354,10 @@ class MOPO(RLAlgorithm):
         if self._train_bnn_only:
             yield {'done': True, **{}}
         #### 
+
+        print('creating wandb logger policy!!!')
+        self.wlogger = Wandb(self.wparams, group_name=self.exp_name, name=self.exp_seed, project='Diversity_Policy')
+        # self.wlogger = None
 
         for self._epoch in gt.timed_for(range(self._epoch, self._n_epochs)):
 
@@ -373,6 +382,7 @@ class MOPO(RLAlgorithm):
                 if timestep % self._model_train_freq == 0 and self._real_ratio < 1.0:
                     self._training_progress.pause()
                     self._set_rollout_length()
+                    print('_reallocate_model_pool')
                     self._reallocate_model_pool()
                     model_rollout_metrics = self._rollout_model(rollout_batch_size=self._rollout_batch_size, deterministic=self._deterministic)
                     model_metrics.update(model_rollout_metrics)
@@ -396,6 +406,7 @@ class MOPO(RLAlgorithm):
             training_paths = self.sampler.get_last_n_paths(
                 math.ceil(self._epoch_length / self.sampler._max_path_length))
 
+            print('evaluating policy')
             evaluation_paths = self._evaluation_paths(
                 policy, evaluation_environment)
             gt.stamp('evaluation_paths')
@@ -450,7 +461,7 @@ class MOPO(RLAlgorithm):
 
                 # print('logging diagnostics!')
                 # print('diagnostics', diagnostics)
-                self.wlogger.wandb.log(diagnostics, step=self._total_timestep)
+                self.wlogger.wandb.log(diagnostics, step=self._total_timestep) if self.wlogger is not None else None
 
             if self._eval_render_mode is not None and hasattr(
                     evaluation_environment, 'render_rollouts'):
