@@ -54,6 +54,7 @@ application="mopo run_local examples.development \
         --cpus=1 --trial-cpus=1  \
         --checkpoint-frequency=100 \
         --exp-name=$name-hum-rewb10 \
+        --rex-beta=10 \
         --seed=26 \
         --penalty-coeff=5 \
         --rollout-length=5 \
