@@ -58,13 +58,16 @@ class BNN:
         self._log_dir = params.get('log_dir', None)
 
         self.train_bnn_only = params.get('train_bnn_only', None)
-        if self.train_bnn_only:
-            self.domain = self._log_dir.split('/')[-3]
-            self.exp_seed = self._log_dir.split('/')[-1].split('_')[0]
-            self.exp_name = self._log_dir.split('/')[-2]
-            print('self.exp_name', self.exp_name)
-            print("'_'+self.domain+'_bnn'", '_'+self.domain+'_bnn')
-            self.wlogger = Wandb(params, group_name=self.exp_name, name=self.exp_seed, project='_'+self.domain+'_bnn')
+        print('CREAting wandb logger!!!')
+        self.domain = self._log_dir.split('/')[-3]
+        self.exp_seed = self._log_dir.split('/')[-1].split('_')[0]
+        self.exp_name = self._log_dir.split('/')[-2]
+        print('self.exp_name', self.exp_name)
+        # print("'_'+self.domain+'_bnn'", '_'+self.domain+'_bnn')
+        # if ('mopo' in self.rex_type):
+        #     self.wlogger = params.get('wlogger')
+        # else:
+        self.wlogger = Wandb(params, group_name=self.exp_name, name=self.exp_seed, project='Diversity_BNN')
 
         print('[ BNN ] Initializing model: {} | {} networks | {} elites'.format(params['name'], params['num_networks'], params['num_elites']))
         if params.get('sess', None) is None:
@@ -437,7 +440,7 @@ class BNN:
                                **{f'train/M{i}_pol_tot_loss': train_pol_tot_loss[i] for i in range(len(train_pol_tot_loss))},
                                **{f'train/M{i}_pol_var_loss': train_pol_var_loss[i] for i in range(len(train_pol_var_loss))},
                                **{f'train/P{i}_mean_pol_loss': train_mean_pol_loss[i] for i in range(min(len(train_mean_pol_loss), 5))},
-                                }, step=n_baches)
+                                }, step=n_baches) if self.wlogger else None
 
     def _save_losses(self, total_losses, pol_total_losses, pol_var_losses, mean_pol_losses, n_datapoints, n_baches, epoch, holdout=False):
         """Save the current training/holdout evaluation losses.
@@ -458,7 +461,7 @@ class BNN:
              **{prefix + f'M{i}_pol_total_losses': pol_total_losses[i] for i in range(len(pol_total_losses))},
              **{prefix + f'M{i}_pol_var_losses': pol_var_losses[i] for i in range(len(pol_var_losses))},
              **{prefix + f'P{i}_mean_pol_losses': mean_pol_losses[i] for i in range(min(len(mean_pol_losses), 5))}}
-        self.wlogger.wandb.log(d)
+        self.wlogger.wandb.log(d) if self.wlogger else None
 
 
 
@@ -697,6 +700,8 @@ class BNN:
         model_metrics = {'val_loss': val_loss}
         print('[ BNN ] Holdout', np.sort(holdout_losses), model_metrics)
         print('finished BNN training!')
+        self.wlogger.wandb.finish()
+
         return OrderedDict(model_metrics)
         # return np.sort(holdout_losses)[]
 

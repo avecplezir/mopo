@@ -4,7 +4,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 ##SBATCH --array=1-3
-#SBATCH --time=36:00:00
+#SBATCH --time=32:00:00
+#SBATCH --mem=8000
 #SBATCH --mail-type=FAIL
 #! Uncomment this to prevent the job from being requeued (e.g. if
 #! interrupted by node failure or system downtime):
@@ -26,8 +27,154 @@ module purge                               # Removes all modules still loaded
 module load rhel8/default-icl              # REQUIRED - loads the basic environment
 
 #! Insert additional module load commands after this line if needed:
+cd /rds/project/rds-eWkDxBhxBrQ/dimorl/code/mopo
 module load miniconda/3
 source ~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/README.mopo.activate
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom_rl \
+#        --cpus=1 --trial-cpus=1 \
+#        --checkpoint-frequency=100 \
+#        --exp-name=fff \
+#        --seed=5 \
+#        --bnn-retrain-epochs=0 \
+#        --penalty-coeff=0.0 \
+#        --rollout-length=20 \
+#        --rollout-batch-size=12500 \
+#        --dataset=W-MIXED-RT-1 \
+#        --model-load-dir Walker2d_W-MIXED-RT-1/rexb20/s6_2023-03-13_22-05-07i8mfaq4c"
+
+#name=$"MIXED-RT-4"
+
+#name=$"HalfCheetah-Expert-Medium30e-50-50-100k-1p"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom_rew \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-hum-rewb10 \
+#        --rex-beta=10 \
+#        --seed=26 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=$name"
+
+name=$"MIXED-RT-4"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-hum-default-2 \
+#        --rex-beta=0 \
+#        --seed=17 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=$name"
+
+application="mopo run_local examples.development \
+        --config=examples.config.d4rl.halfcheetah_custom_rew \
+        --cpus=1 --trial-cpus=1  \
+        --checkpoint-frequency=100 \
+        --exp-name=$name-hum-rewb10 \
+        --rex-beta=10 \
+        --seed=17 \
+        --penalty-coeff=5 \
+        --rollout-length=5 \
+        --rollout-batch-size=50000 \
+        --dataset=$name"
+
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom_rl \
+#        --cpus=1 --trial-cpus=1 \
+#        --checkpoint-frequency=100 \
+#        --exp-name=HalfCheetah_MIXED-RT-4_rex_oldmodel_check_h_mp5rl5 \
+#        --seed=20 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=MIXED-RT-4 \
+#        --model-load-dir=HalfCheetah_MIXED-RT-4/r5_rexb10/s12_2023-03-15_11-41-46uo0ug7i7"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom_rl \
+#        --cpus=1 --trial-cpus=1 \
+#        --checkpoint-frequency=100 \
+#        --exp-name=HalfCheetah_MIXED-RT-4_default_oldmodel_check_h_mp5rl5 \
+#        --seed=18 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=MIXED-RT-4 \
+#        --model-load-dir=HalfCheetah_MIXED-RT-4/default/s6_2023-03-13_17-49-527gggp2s4"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom_rl \
+#        --cpus=1 --trial-cpus=1 \
+#        --checkpoint-frequency=100 \
+#        --exp-name=HalfCheetah_MIXED-RT-4_rewb10_oldmodel_check_h_mp5rl5 \
+#        --seed=20 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=MIXED-RT-4 \
+#        --model-load-dir=HalfCheetah_MIXED-RT-4/rew_rexb10/s12_2023-03-15_12-47-49z7le_dwv"
+
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom_r5 \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-hum-r5b10 \
+#        --seed=24 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=MIXED-RT-4-hum \
+#        --seed=20 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=MIXED-RT-4"
+
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom_rl \
+#        --cpus=1 --trial-cpus=1 \
+#        --checkpoint-frequency=100 \
+#        --exp-name=defaults18_check_h_mp5rl5 \
+#        --seed=18 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=MIXED-RT-1 \
+#        --model-load-dir=HalfCheetah_MIXED-RT-1/default/s18_2023-04-25_18-05-59kzrwddnw"
+#
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_mixed \
+#        --cpus=1 --trial-cpus=1 \
+#        --checkpoint-frequency=100 \
+#        --seed 2 \
+#        --rex-beta=0 \
+#        --exp-name mopo_test_2"
+#
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_mixed_rex_r5 \
+#        --cpus=1 --trial-cpus=1 \
+#        --checkpoint-frequency=100 \
+#        --seed 2 \
+#        --rex-beta=0 \
+#        --exp-name r5_mopo_test"
+#
 
 #! Full path to application executable: 
 application="mopo run_local examples.development \
