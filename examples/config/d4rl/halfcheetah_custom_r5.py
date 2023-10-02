@@ -19,6 +19,7 @@ params['kwargs'].update({
     'holdout_policy': None,
     'train_bnn_only': False,
     'rex': True,
+    # 'improvement_threshold': 0.0001,
     'policy_type': 'random_5',
     'rex_beta': 10.0,
     'rex_multiply': True,

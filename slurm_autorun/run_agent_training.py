@@ -189,7 +189,7 @@ if __name__ == '__main__':
     # params_filepath = os.path.expanduser(
     #     "~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/slurm_autorun/exp_params/hmed_bnn_params.json")
     params_filepath = os.path.expanduser(
-        "~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/slurm_autorun/exp_params/diversity_hum_rex.json")
+        "~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/slurm_autorun/exp_params/diversity_hum_rex4.json")
     # params_filepath = os.path.expanduser(
     #     "~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/slurm_autorun/exp_params/hopm_bnn_params.json")
 
