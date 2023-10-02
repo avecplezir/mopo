@@ -9,7 +9,7 @@ params.update({
     'seed': 4321,
 })
 params['kwargs'].update({
-    'pool_load_path': os.path.expanduser('~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/dogo_results/data/MIXED-RT-1.npy'),
+    # 'pool_load_path': os.path.expanduser('~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/dogo_results/data/MIXED-RT-1.npy'),
     'bnn_retrain_epochs': 0,
     'rex_type': 'var',
     'pool_load_max_size': 101000,
