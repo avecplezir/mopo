@@ -61,6 +61,21 @@ application="mopo run_local examples.development \
         --rollout-batch-size=50000 \
         --dataset=$name"
 
+
+application="mopo run_local examples.development \
+        --config=examples.config.d4rl.halfcheetah_custom_rl \
+        --cpus=1 --trial-cpus=1 \
+        --checkpoint-frequency=100 \
+        --exp-name=rex_oldmodel_check_h_mp5rl5 \
+        --seed=18 \
+        --penalty-coeff=5 \
+        --rollout-length=5 \
+        --rollout-batch-size=50000 \
+        --dataset=MIXED-RT-4 \
+        --model-load-dir=/home/hpcanok1/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/ray_mopo/HalfCheetah_MIXED-RT-4/r5_rexb10/s12_2023-03-15_11-41-46uo0ug7i7"
+
+
+
 #application="mopo run_local examples.development \
 #        --config=examples.config.d4rl.halfcheetah_custom_r5 \
 #        --cpus=1 --trial-cpus=1  \
