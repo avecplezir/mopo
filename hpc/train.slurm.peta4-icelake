@@ -63,29 +63,29 @@ source ~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/README.mopo.activate
 
 name=$"MIXED-RT-4"
 
-application="mopo run_local examples.development \
-        --config=examples.config.d4rl.halfcheetah_custom \
-        --cpus=1 --trial-cpus=1  \
-        --checkpoint-frequency=100 \
-        --exp-name=$name-hum-default-2 \
-        --rex-beta=0 \
-        --seed=18 \
-        --penalty-coeff=5 \
-        --rollout-length=5 \
-        --rollout-batch-size=50000 \
-        --dataset=$name"
-
 #application="mopo run_local examples.development \
-#        --config=examples.config.d4rl.halfcheetah_custom_rew \
+#        --config=examples.config.d4rl.halfcheetah_custom \
 #        --cpus=1 --trial-cpus=1  \
 #        --checkpoint-frequency=100 \
-#        --exp-name=$name-hum-rewb10 \
-#        --rex-beta=10 \
-#        --seed=20 \
+#        --exp-name=$name-hum-default-2 \
+#        --rex-beta=0 \
+#        --seed=17 \
 #        --penalty-coeff=5 \
 #        --rollout-length=5 \
 #        --rollout-batch-size=50000 \
 #        --dataset=$name"
+
+application="mopo run_local examples.development \
+        --config=examples.config.d4rl.halfcheetah_custom_rew \
+        --cpus=1 --trial-cpus=1  \
+        --checkpoint-frequency=100 \
+        --exp-name=$name-hum-rewb10 \
+        --rex-beta=10 \
+        --seed=17 \
+        --penalty-coeff=5 \
+        --rollout-length=5 \
+        --rollout-batch-size=50000 \
+        --dataset=$name"
 
 
 #application="mopo run_local examples.development \
