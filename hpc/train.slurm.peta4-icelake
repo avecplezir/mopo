@@ -60,8 +60,6 @@ source ~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/README.mopo.activate
 #        --rollout-batch-size=50000 \
 #        --dataset=$name"
 
-name=$"MIXED-RT-4"
-
 #application="mopo run_local examples.development \
 #        --config=examples.config.d4rl.halfcheetah_custom \
 #        --cpus=1 --trial-cpus=1  \
@@ -74,17 +72,80 @@ name=$"MIXED-RT-4"
 #        --rollout-batch-size=50000 \
 #        --dataset=$name"
 
+name=$"MIXED-RT-4"
+
 application="mopo run_local examples.development \
-        --config=examples.config.d4rl.halfcheetah_custom_rew \
+        --config=examples.config.d4rl.halfcheetah_custom_r5 \
         --cpus=1 --trial-cpus=1  \
         --checkpoint-frequency=100 \
-        --exp-name=$name-hum-rewb10 \
+        --exp-name=$name-wa-r5b10 \
         --rex-beta=10 \
         --seed=17 \
         --penalty-coeff=5 \
         --rollout-length=5 \
         --rollout-batch-size=50000 \
         --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom_rew \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-rewb10 \
+#        --rex-beta=10 \
+#        --seed=19 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-default \
+#        --rex-beta=0 \
+#        --seed=19 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=test_wa \
+#        --rex-beta=0 \
+#        --seed=17 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=MIXED-RT-4"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom_rl \
+#        --cpus=1 --trial-cpus=1 \
+#        --checkpoint-frequency=100 \
+#        --exp-name=fff \
+#        --seed=5 \
+#        --bnn-retrain-epochs=0 \
+#        --penalty-coeff=0.0 \
+#        --rollout-length=20 \
+#        --rollout-batch-size=12500 \
+#        --dataset=W-MIXED-RT-1 \
+#        --model-load-dir Walker2d_W-MIXED-RT-1/rexb20/s6_2023-03-13_22-05-07i8mfaq4c"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom_rew \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-rewb10 \
+#        --rex-beta=10 \
+#        --seed=17 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=$name"
 
 
 #application="mopo run_local examples.development \
@@ -177,18 +238,18 @@ application="mopo run_local examples.development \
 #
 
 #! Full path to application executable: 
-application="mopo run_local examples.development \
-        --config=examples.config.d4rl.walker2d_custom_rl \
-        --cpus=1 --trial-cpus=1 \
-        --checkpoint-frequency=100 \
-        --exp-name=fff \
-        --seed=5 \
-        --bnn-retrain-epochs=0 \
-        --penalty-coeff=0.0 \
-        --rollout-length=20 \
-        --rollout-batch-size=12500 \
-        --dataset=W-MIXED-RT-1 \
-        --model-load-dir Walker2d_W-MIXED-RT-1/rexb20/s6_2023-03-13_22-05-07i8mfaq4c"
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom_rl \
+#        --cpus=1 --trial-cpus=1 \
+#        --checkpoint-frequency=100 \
+#        --exp-name=fff \
+#        --seed=5 \
+#        --bnn-retrain-epochs=0 \
+#        --penalty-coeff=0.0 \
+#        --rollout-length=20 \
+#        --rollout-batch-size=12500 \
+#        --dataset=W-MIXED-RT-1 \
+#        --model-load-dir Walker2d_W-MIXED-RT-1/rexb20/s6_2023-03-13_22-05-07i8mfaq4c"
 
 #! Run options for the application:
 #options="run_local examples.development \
@@ -205,18 +266,18 @@ application="mopo run_local examples.development \
 #        --model-load-dir Walker2d_W-MIXED-RT-1/rexb20/s6_2023-03-13_22-05-07i8mfaq4c
 #        "
 
-mopo run_local examples.development \
-       --config=examples.config.d4rl.walker2d_custom_rl \
-       --cpus=1 --trial-cpus=1 \
-       --checkpoint-frequency=100 \
-       --exp-name=rexb10s12_mp0rl20 \
-       --seed=7 \
-       --bnn-retrain-epochs=0 \
-       --penalty-coeff=0.0 \
-       --rollout-length=20 \
-       --rollout-batch-size=12500 \
-       --dataset=W-MIXED-RT-1 \
-       --model-load-dir Walker2d_W-MIXED-RT-1/rexb10/s12_2023-02-27_15-47-18ru2ygkfy
+#mopo run_local examples.development \
+#       --config=examples.config.d4rl.walker2d_custom_rl \
+#       --cpus=1 --trial-cpus=1 \
+#       --checkpoint-frequency=100 \
+#       --exp-name=rexb10s12_mp0rl20 \
+#       --seed=7 \
+#       --bnn-retrain-epochs=0 \
+#       --penalty-coeff=0.0 \
+#       --rollout-length=20 \
+#       --rollout-batch-size=12500 \
+#       --dataset=W-MIXED-RT-1 \
+#       --model-load-dir Walker2d_W-MIXED-RT-1/rexb10/s12_2023-02-27_15-47-18ru2ygkfy
 
 #! Work directory (i.e. where the job will run):
 workdir="/home/hpcanok1/rds/project/rds-eWkDxBhxBrQ/dimorl/code/mopo"   # The value of SLURM_SUBMIT_DIR sets workdir to the directory
