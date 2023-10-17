@@ -72,19 +72,142 @@ source ~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/README.mopo.activate
 #        --rollout-batch-size=50000 \
 #        --dataset=$name"
 
-name=$"MIXED-RT-4"
+
+name=$"W-MIXED-RT-1"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-default \
+#        --rex-beta=0 \
+#        --seed=18 \
+#        --penalty-coeff=0 \
+#        --rollout-length=10 \
+#        --rollout-batch-size=25000 \
+#        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom_rex_rewp \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-rewb20 \
+#        --rex-beta=20 \
+#        --seed=20 \
+#        --penalty-coeff=0 \
+#        --rollout-length=10 \
+#        --rollout-batch-size=25000 \
+#        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom_rex \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-rexb5 \
+#        --rex-beta=5 \
+#        --seed=20 \
+#        --penalty-coeff=0 \
+#        --rollout-length=10 \
+#        --rollout-batch-size=25000 \
+#        --dataset=$name"
 
 application="mopo run_local examples.development \
-        --config=examples.config.d4rl.halfcheetah_custom_r5 \
+        --config=examples.config.d4rl.walker2d_custom_rex_r5 \
         --cpus=1 --trial-cpus=1  \
         --checkpoint-frequency=100 \
-        --exp-name=$name-wa-r5b10 \
-        --rex-beta=10 \
-        --seed=17 \
-        --penalty-coeff=5 \
-        --rollout-length=5 \
-        --rollout-batch-size=50000 \
+        --exp-name=$name-wa-r5b5 \
+        --rex-beta=5 \
+        --seed=20 \
+        --penalty-coeff=0 \
+        --rollout-length=10 \
+        --rollout-batch-size=25000 \
         --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-default \
+#        --rex-beta=0 \
+#        --seed=20 \
+#        --penalty-coeff=0 \
+#        --rollout-length=10 \
+#        --rollout-batch-size=25000 \
+#        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-default-rl5 \
+#        --rex-beta=0 \
+#        --seed=18 \
+#        --penalty-coeff=0 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom_rex_rewp \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-rewb5 \
+#        --rex-beta=5 \
+#        --seed=18 \
+#        --penalty-coeff=0 \
+#        --rollout-length=10 \
+#        --rollout-batch-size=25000 \
+#        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom_rex \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-rexb20 \
+#        --rex-beta=20 \
+#        --seed=25 \
+#        --penalty-coeff=0 \
+#        --rollout-length=10 \
+#        --rollout-batch-size=25000 \
+#        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom_rex_r5 \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-r5b10 \
+#        --rex-beta=10 \
+#        --seed=22 \
+#        --penalty-coeff=0 \
+#        --rollout-length=10 \
+#        --rollout-batch-size=25000 \
+#        --dataset=$name"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom_rex_r5 \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=W-MIXED-RT-4-wa-r5b10 \
+#        --rex-beta=10 \
+#        --seed=17 \
+#        --penalty-coeff=0 \
+#        --rollout-length=10 \
+#        --rollout-batch-size=25000 \
+#        --dataset=W-MIXED-RT-4"
+
+#name=$"MIXED-RT-4"
+#
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom_r5 \
+#        --cpus=1 --trial-cpus=1  \
+#        --checkpoint-frequency=100 \
+#        --exp-name=$name-wa-r5b10 \
+#        --rex-beta=10 \
+#        --seed=17 \
+#        --penalty-coeff=5 \
+#        --rollout-length=5 \
+#        --rollout-batch-size=50000 \
+#        --dataset=$name"
 
 #application="mopo run_local examples.development \
 #        --config=examples.config.d4rl.halfcheetah_custom_rew \
