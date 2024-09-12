@@ -20,7 +20,7 @@ from mopo.models.constructor import construct_model, format_samples_for_training
 from mopo.models.fake_env import FakeEnv
 from mopo.utils.writer import Writer
 from mopo.utils.visualization import visualize_policy
-from mopo.utils.logging import Progress
+from mopo.utils.logging import Progress, Wandb
 import mopo.utils.filesystem as filesystem
 import mopo.off_policy.loader as loader
 
@@ -87,6 +87,8 @@ class MOPO(RLAlgorithm):
             rex=False,
             rex_beta=10.0,
             rex_multiply=False,
+            rex_type='var',
+            policy_type='default',
             holdout_policy=None,
             train_bnn_only=False,
             repeat_dynamics_epochs=1,
@@ -136,18 +138,73 @@ class MOPO(RLAlgorithm):
         super(MOPO, self).__init__(**kwargs)
 
         self._log_dir = os.getcwd()
+        print('self._log_dir', self._log_dir)
         self._writer = Writer(self._log_dir)
+        if not train_bnn_only:
+            wparams = {**dict(training_environmen=training_environment,
+                              evaluation_environment=evaluation_environment,
+                              policy=policy, Qs=Qs, pool=pool, static_fns=static_fns, plotter=plotter,
+                              tf_summaries=tf_summaries,
+                              lr=lr,
+                              reward_scale=reward_scale,
+                            target_entropy=target_entropy,
+                            discount=discount,
+                            tau=tau,
+                            target_update_interval=target_update_interval,
+                            action_prior=action_prior,
+                            reparameterize=reparameterize,
+                            store_extra_policy_info=store_extra_policy_info,
+                            deterministic=deterministic,
+                            rollout_random=rollout_random,
+                            model_train_freq=model_train_freq,
+                            num_networks=num_networks,
+                            num_elites=num_elites,
+                            model_retain_epochs=model_retain_epochs,
+                            rollout_batch_size=rollout_batch_size,
+                            real_ratio=real_ratio,
+                            rollout_length=rollout_length,
+                            hidden_dim=hidden_dim,
+                            max_model_t=max_model_t,
+                            model_type=model_type,
+                            separate_mean_var=separate_mean_var,
+                            identity_terminal=identity_terminal,
+                            pool_load_path=pool_load_path,
+                            pool_load_max_size=pool_load_max_size,
+                            model_name=model_name,
+                            model_load_dir=model_load_dir,
+                            penalty_coeff=penalty_coeff,
+                            penalty_learned_var=penalty_learned_var,
+                            rex=rex,
+                            rex_beta=rex_beta,
+                            rex_multiply=rex_multiply,
+                            rex_type=rex_type,
+                            policy_type=policy_type,
+                            holdout_policy=holdout_policy,
+                            train_bnn_only=train_bnn_only,
+                            repeat_dynamics_epochs=repeat_dynamics_epochs,
+                            lr_decay=lr_decay,
+                            bnn_batch_size=bnn_batch_size,
+                            bnn_retrain_epochs=bnn_retrain_epochs),
+                            **kwargs}
+            print('wandb self._log_dir', self._log_dir)
+            self.domain = self._log_dir.split('/')[-3]
+            self.exp_seed = self._log_dir.split('/')[-1].split('_')[0]
+            self.exp_name = self._log_dir.split('/')[-2]
+            self.wlogger = Wandb(wparams, group_name=self.exp_name, name=self.exp_seed, project='_'+self.domain+'_policy')
 
         obs_dim = np.prod(training_environment.active_observation_shape)
         act_dim = np.prod(training_environment.action_space.shape)
         self._model_type = model_type
         self._identity_terminal = identity_terminal
+        print('model_load_dir', model_load_dir)
         self._model = construct_model(obs_dim=obs_dim, act_dim=act_dim, hidden_dim=hidden_dim,
                                       num_networks=num_networks, num_elites=num_elites,
                                       model_type=model_type, separate_mean_var=separate_mean_var,
                                       name=model_name, load_dir=model_load_dir, deterministic=deterministic,
                                       rex=rex, rex_beta=rex_beta, rex_multiply=rex_multiply, 
-                                      lr_decay=lr_decay, log_dir=self._log_dir)
+                                      lr_decay=lr_decay, log_dir=self._log_dir,
+                                      train_bnn_only=train_bnn_only, rex_type=rex_type,
+                                      policy_type=policy_type)
         self._static_fns = static_fns
         self.fake_env = FakeEnv(self._model, self._static_fns, penalty_coeff=penalty_coeff,
                                 penalty_learned_var=penalty_learned_var)
@@ -177,6 +234,7 @@ class MOPO(RLAlgorithm):
         self._Qs = Qs
         self._Q_targets = tuple(tf.keras.models.clone_model(Q) for Q in Qs)
 
+        print('pool', pool)
         self._pool = pool
         self._plotter = plotter
         self._tf_summaries = tf_summaries
@@ -213,7 +271,8 @@ class MOPO(RLAlgorithm):
         self._pool_load_path = pool_load_path
         self._pool_load_max_size = pool_load_max_size
 
-        loader.restore_pool(self._pool, self._pool_load_path, self._pool_load_max_size, save_path=self._log_dir)
+        loader.restore_pool(self._pool, self._pool_load_path, self._pool_load_max_size,
+                            save_path=self._log_dir, policy_type=policy_type)
         self._init_pool_size = self._pool.size
         print('[ MOPO ] Starting with pool size: {}'.format(self._init_pool_size))
         ####
@@ -247,6 +306,7 @@ class MOPO(RLAlgorithm):
             self._init_training()
 
         self.sampler.initialize(training_environment, policy, pool)
+        print('self.sampler._max_path_length', self.sampler._max_path_length)
 
         gt.reset_root()
         gt.rename_root('RLAlgorithm')
@@ -262,6 +322,7 @@ class MOPO(RLAlgorithm):
 
         # The original MOPO code would run 1 epoch of training against a loaded model
         # Changes made to the code mean that we can now specify `self._bnn_retrain_epochs=0`
+        print('save_path', os.path.join(self._log_dir, 'models'))
         max_epochs = self._bnn_retrain_epochs if self._model.model_loaded else None
         model_train_metrics = self._train_model(
             batch_size=self._bnn_batch_size,
@@ -307,7 +368,9 @@ class MOPO(RLAlgorithm):
                     self._reallocate_model_pool()
                     model_rollout_metrics = self._rollout_model(rollout_batch_size=self._rollout_batch_size, deterministic=self._deterministic)
                     model_metrics.update(model_rollout_metrics)
-                    
+                    time_step_global = self._epoch_length * self._epoch + timestep
+                    # self.wlogger.wandb.log({**{'rollout_model/' + key: value for key, value in model_rollout_metrics.items()}, **{'rollout_model/time_step_global': time_step_global}}, step=time_step_global)
+
                     gt.stamp('epoch_rollout_model')
                     self._training_progress.resume()
 
@@ -352,28 +415,33 @@ class MOPO(RLAlgorithm):
 
             time_diagnostics = gt.get_times().stamps.itrs
 
-            diagnostics.update(OrderedDict((
-                *(
-                    (f'evaluation/{key}', evaluation_metrics[key])
-                    for key in sorted(evaluation_metrics.keys())
-                ),
-                *(
-                    (f'times/{key}', time_diagnostics[key][-1])
-                    for key in sorted(time_diagnostics.keys())
-                ),
-                *(
-                    (f'sampler/{key}', sampler_diagnostics[key])
-                    for key in sorted(sampler_diagnostics.keys())
-                ),
-                *(
-                    (f'model/{key}', model_metrics[key])
-                    for key in sorted(model_metrics.keys())
-                ),
-                ('epoch', self._epoch),
-                ('timestep', self._timestep),
-                ('timesteps_total', self._total_timestep),
-                ('train-steps', self._num_train_steps),
-            )))
+            if self._epoch % 10 == 0:
+                diagnostics.update(OrderedDict((
+                    *(
+                        (f'evaluation/{key}', evaluation_metrics[key])
+                        for key in sorted(evaluation_metrics.keys())
+                    ),
+                    *(
+                        (f'times/{key}', time_diagnostics[key][-1])
+                        for key in sorted(time_diagnostics.keys())
+                    ),
+                    *(
+                        (f'sampler/{key}', sampler_diagnostics[key])
+                        for key in sorted(sampler_diagnostics.keys())
+                    ),
+                    *(
+                        (f'model/{key}', model_metrics[key])
+                        for key in sorted(model_metrics.keys())
+                    ),
+                    *(('rollout_model/' + key, value) for key, value in model_rollout_metrics.items()),
+                    ('epoch', self._epoch),
+                    ('timestep', self._timestep),
+                    ('timesteps_total', self._total_timestep),
+                    ('train-steps', self._num_train_steps),
+                    ('time_step_global', time_step_global)
+                )))
+
+                self.wlogger.wandb.log(diagnostics, step=self._total_timestep)
 
             if self._eval_render_mode is not None and hasattr(
                     evaluation_environment, 'render_rollouts'):

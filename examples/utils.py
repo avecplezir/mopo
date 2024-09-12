@@ -165,7 +165,7 @@ def add_ray_tune_args(parser):
     parser.add_argument(
         '--trial-name-template',
         type=str,
-        default='seed:{trial.config[run_params][seed]}',
+        default='s{trial.config[run_params][seed]}',
         # default='id={trial.trial_id}-seed={trial.config[run_params][seed]}',
         help=tune_help_string(
             "Optional string template for trial name. For example:"
@@ -308,7 +308,13 @@ def get_parser(allow_policy_list=False):
         type=str,
         default=None,
         help="The experiment whose dynamics model should be loaded.")
-    
+
+    parser.add_argument(
+        '--model-load-dir',
+        type=str,
+        default=None,
+        help="Path to models directory")
+
     parser.add_argument(
         '--penalty-coeff',
         type=float,

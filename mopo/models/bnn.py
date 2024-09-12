@@ -46,13 +46,25 @@ class BNN:
                 .rex_beta (float): (optional) The penalty value to use in V-REx.
                 .rex_multiply (`bool`): If True, multiply variance by beta, else divide sum of losses
                     by beta.
+                .rex_type (`bool`):
+                .policy_type
                 .lr_decay ('float'): (optional) Multiply the core loss by this number before returning.
                     Applies in REx training loop.
                 .log_dir (str): Where to save logs to during training.
         """
+        print('params', params)
         self.name = get_required_argument(params, 'name', 'Must provide name.')
         self.model_dir = params.get('model_dir', None)
         self._log_dir = params.get('log_dir', None)
+
+        self.train_bnn_only = params.get('train_bnn_only', None)
+        if self.train_bnn_only:
+            self.domain = self._log_dir.split('/')[-3]
+            self.exp_seed = self._log_dir.split('/')[-1].split('_')[0]
+            self.exp_name = self._log_dir.split('/')[-2]
+            print('self.exp_name', self.exp_name)
+            print("'_'+self.domain+'_bnn'", '_'+self.domain+'_bnn')
+            self.wlogger = Wandb(params, group_name=self.exp_name, name=self.exp_seed, project='_'+self.domain+'_bnn')
 
         print('[ BNN ] Initializing model: {} | {} networks | {} elites'.format(params['name'], params['num_networks'], params['num_elites']))
         if params.get('sess', None) is None:
@@ -74,6 +86,9 @@ class BNN:
         self.rex_beta = float(params.get('rex_beta', 10.0))
         self.rex_multiply = params.get('rex_multiply', False)
         self.lr_decay = float(params.get('lr_decay', 1.0))
+        self.rex_type = params.get('rex_type', 'var')
+        self.policy_type = params.get('policy_type', 'default')
+        print('self.policy_type ', self.policy_type)
 
         # Training objects
         self.optimizer = None
@@ -87,8 +102,6 @@ class BNN:
 
         self.deterministic = params.get('deterministic', False)
         self.separate_mean_var = params.get('separate_mean_var', False)
-
-        self.wlogger = Wandb(params, subname='_bnn')
 
         if params.get('load_model', False):
             if self.model_dir is None:
@@ -405,58 +418,49 @@ class BNN:
         mean_elite_loss = np.sort(losses)[:self.num_elites].mean()
         return mean_elite_loss
 
-    def _save_training_losses(self, train_loss, train_core_loss, train_pol_tot_loss, train_pol_var_loss, train_mean_pol_loss, train_decay_loss, train_var_lim_loss):
+    def _save_training_losses(self, train_loss, train_core_loss, train_pol_tot_loss, train_pol_var_loss, train_mean_pol_loss, train_decay_loss, train_var_lim_loss, n_datapoints, n_baches, epoch, rex_training_loop):
         """Save the current training losses.
         """
-        train_loss_history_path           = os.path.join(self._log_dir, 'model_train_loss_history.txt')
-        train_core_loss_history_path      = os.path.join(self._log_dir, 'model_train_core_loss_history.txt')
-        train_pol_total_loss_history_path = os.path.join(self._log_dir, 'model_train_pol_total_loss_history.txt')
-        train_pol_var_loss_history_path   = os.path.join(self._log_dir, 'model_train_pol_var_loss_history.txt')
-        train_mean_pol_loss_history_path  = os.path.join(self._log_dir, 'model_train_mean_pol_loss_history.txt')
-        train_decay_loss_history_path     = os.path.join(self._log_dir, 'model_train_decay_loss_history.txt')
-        train_var_lim_loss_history_path   = os.path.join(self._log_dir, 'model_train_var_lim_loss_history.txt')
+        self.wlogger.wandb.log({**{'train_main/loss': train_loss,
+                                   'train_main/core_loss': train_core_loss,
+                                   'train/decay_loss': train_decay_loss,
+                                   'train_main/rex_training_loop': int(rex_training_loop),
+                                   'train/var_lim_loss': train_var_lim_loss,
+                                   'train/n_datapoints': n_datapoints, 'train/n_baches': n_baches, 'train/epoch': epoch,
+                                   'train_main/pol_total_losses_mean': np.mean(train_pol_tot_loss),
+                                   'train_main/pol_var_losses_mean': np.mean(train_pol_var_loss),
+                                   'train_main/mean_pol_losses_mean': np.mean(train_mean_pol_loss),
+                                   'train/pol_total_losses_var': np.var(train_pol_tot_loss),
+                                   'train/pol_var_losses_var': np.var(train_pol_var_loss),
+                                   'train_main/mean_pol_losses_var': np.var(train_mean_pol_loss),
+                                   },
+                               **{f'train/M{i}_pol_tot_loss': train_pol_tot_loss[i] for i in range(len(train_pol_tot_loss))},
+                               **{f'train/M{i}_pol_var_loss': train_pol_var_loss[i] for i in range(len(train_pol_var_loss))},
+                               **{f'train/P{i}_mean_pol_loss': train_mean_pol_loss[i] for i in range(min(len(train_mean_pol_loss), 5))},
+                                }, step=n_baches)
 
-        with open(train_loss_history_path, 'a') as f:
-            f.write(train_loss.astype(str)+"\n")
-        with open(train_core_loss_history_path, 'a') as f:
-            f.write(train_core_loss.astype(str)+"\n")
-        with open(train_pol_total_loss_history_path, 'a') as f:
-            f.write(",".join(list(train_pol_tot_loss.astype(str)))+"\n")
-        with open(train_pol_var_loss_history_path, 'a') as f:
-            f.write(",".join(list(train_pol_var_loss.astype(str)))+"\n")
-        with open(train_mean_pol_loss_history_path, 'a') as f:
-            f.write(",".join(list(train_mean_pol_loss.astype(str)))+"\n")
-        with open(train_decay_loss_history_path, 'a') as f:
-            f.write(train_decay_loss.astype(str)+"\n")
-        with open(train_var_lim_loss_history_path, 'a') as f:
-            f.write(train_var_lim_loss.astype(str)+"\n")
-
-        print('train_loss', train_loss)
-        print('train_var_lim_loss_history_path', train_var_lim_loss_history_path)
-        self.wlogger.wandb.log({'train_loss': train_loss})
-
-    def _save_losses(self, total_losses, pol_total_losses, pol_var_losses, mean_pol_losses, holdout=False):
+    def _save_losses(self, total_losses, pol_total_losses, pol_var_losses, mean_pol_losses, n_datapoints, n_baches, epoch, holdout=False):
         """Save the current training/holdout evaluation losses.
         """
-        if holdout:
-            total_loss_history_path =     os.path.join(self._log_dir, 'model_holdout_loss_history.txt')
-            pol_total_loss_history_path = os.path.join(self._log_dir, 'model_holdout_pol_total_loss_history.txt')
-            pol_var_loss_history_path =   os.path.join(self._log_dir, 'model_holdout_pol_var_loss_history.txt')
-            mean_pol_loss_history_path =  os.path.join(self._log_dir, 'model_holdout_mean_pol_loss_history.txt')
-        else:
-            total_loss_history_path =     os.path.join(self._log_dir, 'model_loss_history.txt')
-            pol_total_loss_history_path = os.path.join(self._log_dir, 'model_pol_total_loss_history.txt')
-            pol_var_loss_history_path =   os.path.join(self._log_dir, 'model_pol_var_loss_history.txt')
-            mean_pol_loss_history_path =  os.path.join(self._log_dir, 'model_mean_pol_loss_history.txt')
+        prefix = 'holdout/' if holdout else ''
 
-        with open(total_loss_history_path, 'a') as f:
-            f.write(",".join(list(total_losses.astype(str)))+"\n")
-        with open(pol_total_loss_history_path, 'a') as f:
-            f.write(",".join(list(pol_total_losses.astype(str)))+"\n")
-        with open(pol_var_loss_history_path, 'a') as f:
-            f.write(",".join(list(pol_var_losses.astype(str)))+"\n")
-        with open(mean_pol_loss_history_path, 'a') as f:
-            f.write(",".join(list(mean_pol_losses.astype(str)))+"\n")
+        d = {**{'n_datapoints': n_datapoints, 'n_baches': n_baches, 'epoch': epoch,
+                prefix + 'total_losses_mean': np.mean(total_losses),
+                prefix + 'pol_total_losses_mean': np.mean(pol_total_losses),
+                prefix + 'pol_var_losses_mean': np.mean(pol_var_losses),
+                prefix + 'mean_pol_losses_mean': np.mean(mean_pol_losses),
+                prefix + 'total_losses_var': np.var(total_losses),
+                prefix + 'pol_total_losses_var': np.var(pol_total_losses),
+                prefix + 'pol_var_losses_var': np.var(pol_var_losses),
+                prefix + 'mean_pol_losses_var': np.var(mean_pol_losses),
+                },
+             **{prefix + f'M{i}_total_losses': total_losses[i] for i in range(len(total_losses))},
+             **{prefix + f'M{i}_pol_total_losses': pol_total_losses[i] for i in range(len(pol_total_losses))},
+             **{prefix + f'M{i}_pol_var_losses': pol_var_losses[i] for i in range(len(pol_var_losses))},
+             **{prefix + f'P{i}_mean_pol_losses': mean_pol_losses[i] for i in range(min(len(mean_pol_losses), 5))}}
+        self.wlogger.wandb.log(d)
+
+
 
     #################
     # Model Methods #
@@ -464,7 +468,8 @@ class BNN:
 
     def train(self, inputs, targets, policies,
               batch_size=32, max_epochs=None, max_epochs_since_update=5,
-              hide_progress=False, holdout_ratio=0.0, max_logging=1000, max_grad_updates=None, timer=None, max_t=None,
+              hide_progress=False, holdout_ratio=0.0, max_logging=1000,
+              max_grad_updates=None, timer=None, max_t=None,
               holdout_policy=None, repeat_dynamics_epochs=1):
         """Trains/Continues network training
 
@@ -545,6 +550,11 @@ class BNN:
 
         # Complete two loops of training. First loop performs normal training
         # The second loop applies REx, if REx is enabled (else the first loop is effectively completed again)
+        save_every = 10
+        n_datapoints = 0
+        n_baches = 0
+        total_epoch = 0
+
         for o_loop in range(2):
             if o_loop == 0:
                 print('[ BNN ] Begginning training')
@@ -555,24 +565,49 @@ class BNN:
                 # and perform this number of epochs of additional training.
                 # Unless a pre-trained model has been loaded, in which case do not perform any further training.
                 epoch_iter = range(0) if self.model_loaded else range(repeat_dynamics_epochs*(epoch+1))
+                print('epoch_iter', epoch_iter)
                 print('[ BNN ] Begginning further {} epochs of training'.format(0 if self.model_loaded else repeat_dynamics_epochs*(epoch+1)))
                 rex_training_loop = True
             else:
                 raise RuntimeError('Attempting to complete unexpected training loop')
 
+            print('rex_training_loop', rex_training_loop)
             for epoch in epoch_iter:
+                total_epoch += 1
                 for batch_num in range(int(np.ceil(idxs.shape[-1] / batch_size))):
+                    # print('batch loop rex_training_loop', rex_training_loop)
+                    n_datapoints += batch_num * batch_size
+                    n_baches += batch_num
                     batch_idxs = idxs[:, batch_num * batch_size:(batch_num + 1) * batch_size]
+                    if self.policy_type in ['default', 'trajectory_partitioned', 'value_partitioned', 'reward_partioned']:
+                        policy_np = policies[batch_idxs]
+                    elif self.policy_type == 'random':
+                        # print('policies', policies[batch_idxs].shape)
+                        # print('inputs[batch_idxs]', inputs[batch_idxs].shape)
+                        policy_np = np.arange(inputs[batch_idxs].shape[1])
+                        np.random.shuffle(policy_np)
+                        policy_np = policy_np[None, :]
+                        policy_np = np.tile(policy_np, [inputs[batch_idxs].shape[0], 1])[:, :, None]
+                        # print('policy_np', policy_np.shape)
+                    elif self.policy_type == 'random_5':
+                        policy_set = np.arange(5)
+                        policy_np = np.random.choice(policy_set, int(inputs[batch_idxs].shape[1]))
+                        policy_np = policy_np[None, :]
+                        policy_np = np.tile(policy_np, [inputs[batch_idxs].shape[0], 1])[:, :, None]
+                    else:
+                        assert 0, f'{self.policy_type} policy_type is not implemented'
+
                     _, train_loss, train_core_loss, train_pol_tot_loss, train_pol_var_loss, train_mean_pol_loss, train_decay_loss, train_var_lim_loss = self.sess.run(
                         (self.train_op, self.train_loss, self.train_core_loss, self.train_pol_tot_loss, self.train_pol_var_loss, self.train_mean_pol_loss, self.train_decay_loss, self.train_var_lim_loss),
                         feed_dict={
                             self.sy_train_in: inputs[batch_idxs],
                             self.sy_train_targ: targets[batch_idxs],
-                            self.sy_train_pol: policies[batch_idxs],
+                            self.sy_train_pol: policy_np,
                             self.sy_rex_training_loop: rex_training_loop,
                         }
                     )
-                    self._save_training_losses(train_loss, train_core_loss, train_pol_tot_loss, train_pol_var_loss, train_mean_pol_loss, train_decay_loss, train_var_lim_loss)
+                    if batch_num % save_every ==0:
+                        self._save_training_losses(train_loss, train_core_loss, train_pol_tot_loss, train_pol_var_loss, train_mean_pol_loss, train_decay_loss, train_var_lim_loss, n_datapoints, n_baches, total_epoch, rex_training_loop)
                     grad_updates += 1
 
                 idxs = shuffle_rows(idxs)
@@ -587,7 +622,7 @@ class BNN:
                                     self.sy_rex_training_loop: rex_training_loop,
                                 }
                             )
-                        self._save_losses(losses, pol_total_losses, pol_var_losses, mean_pol_losses)
+                        self._save_losses(losses, pol_total_losses, pol_var_losses, mean_pol_losses, n_datapoints, n_baches, total_epoch)
                         named_losses = [['M{}'.format(i), losses[i]] for i in range(len(losses))]
                         progress.set_description(named_losses)
                     else:
@@ -609,26 +644,30 @@ class BNN:
                                     self.sy_rex_training_loop: rex_training_loop,
                                 }
                             )
-                        self._save_losses(losses, pol_total_losses, pol_var_losses, mean_pol_losses)
-                        self._save_losses(holdout_losses, holdout_pol_total_losses, holdout_pol_var_losses, holdout_mean_pol_losses, holdout=True)
+                        self._save_losses(losses, pol_total_losses, pol_var_losses, mean_pol_losses, n_datapoints, n_baches, total_epoch)
+                        self._save_losses(holdout_losses, holdout_pol_total_losses, holdout_pol_var_losses, holdout_mean_pol_losses, n_datapoints, n_baches, total_epoch, holdout=True)
                         named_losses = [['M{}'.format(i), losses[i]] for i in range(len(losses))]
                         named_holdout_losses = [['V{}'.format(i), holdout_losses[i]] for i in range(len(holdout_losses))]
                         named_losses = named_losses + named_holdout_losses + [['T', time.time() - t0]]
                         progress.set_description(named_losses)
 
                         break_train = self._save_best(epoch, holdout_losses)
+                        print('break_train', break_train)
 
                 progress.update()
                 t = time.time() - t0
 
                 # Break conditions apply only in the first, standard training loop
                 # In the second loop we force `repeat_dynamics_epochs` times the number of training epochs as in the first loop to be completed
+                print('o_loop', o_loop)
                 if o_loop == 0 and (break_train or (max_grad_updates and grad_updates > max_grad_updates)):
+                    print('breaking the first loop')
                     break
                 if max_t and t > max_t:
                     descr = 'Breaking because of timeout: {}! (max: {})'.format(t, max_t)
                     progress.append_description(descr)
                     # print('Breaking because of timeout: {}! | (max: {})\n'.format(t, max_t))
+                    print('breaking the second loop')
                     # time.sleep(5)
                     break
 
@@ -657,6 +696,7 @@ class BNN:
         val_loss = (np.sort(holdout_losses)[:self.num_elites]).mean()
         model_metrics = {'val_loss': val_loss}
         print('[ BNN ] Holdout', np.sort(holdout_losses), model_metrics)
+        print('finished BNN training!')
         return OrderedDict(model_metrics)
         # return np.sort(holdout_losses)[]
 
@@ -860,12 +900,22 @@ class BNN:
         # as this is needed for future matrix multiplication
         if inc_var_loss:
             # Log-likelihood
-            mse_losses = tf.reduce_mean(tf.square(mean - targets) * inv_var, axis=-1, keepdims=True)
+            dif2 = tf.square(mean - targets)
+            # mul = tf.constant(np.array([[[1]*9 + [5]*9]], dtype='float32'))
+            # print('mul', mul.shape)
+            # print('dif2', dif2.shape)
+            # dif2 = dif2 * mul
+            # print('dif2[:, :, 9:]', dif2[:, :, 9:].shape)
+            # dif2[:, :, 9:] = dif2[:, :, 9:] * 10
+            mse_losses = tf.reduce_mean(dif2 * inv_var, axis=-1, keepdims=True)
             var_losses = tf.reduce_mean(log_var, axis=-1, keepdims=True)
             losses = mse_losses + var_losses
         else:
             # MSE
             losses = tf.reduce_mean(tf.square(mean - targets), axis=-1, keepdims=True)
+
+        # print('ff mean', mean.shape)
+        # print('ff targets', targets.shape)
 
         # Identify the unique policies present across all batches of data
         policies = tf.cast(policies, tf.int32)
@@ -891,17 +941,34 @@ class BNN:
         mean_policy_losses = tf.reduce_mean(policy_losses, axis=0)
 
         # Add the losses across all the policies. Results in vector of length B
-        policy_total_losses = tf.reduce_sum(policy_losses, axis=-1)
-
+        if self.policy_type in ['default', 'random_5']:
+            policy_total_losses = tf.reduce_sum(policy_losses, axis=-1)
+        else:
+            policy_total_losses = 5 * tf.reduce_mean(policy_losses, axis=-1)  # compensate for the reduce sum in other policy_types by multiplying by 5
+        #
         # Determine the variance of the losses - use boolean mask to ensure only taking variance for
         # policies which appear in the batch (i.e., some batches may not have records for all policies).
         def determine_var(x):
             batch_pol_losses, batch_pol_counts = x[0,:], x[1,:]
             return tf.math.reduce_variance(tf.boolean_mask(batch_pol_losses, batch_pol_counts>0.))
-        policy_var_losses = tf.map_fn(determine_var, tf.stack((policy_losses, pol_count), axis=-2))
+
+        def determine_mean_deviation(x):
+            batch_pol_losses, batch_pol_counts = x[0,:], x[1,:]
+            mean = tf.math.reduce_mean(tf.boolean_mask(batch_pol_losses, batch_pol_counts>0.))
+            batch_pol_losses_var_abs = tf.math.abs(batch_pol_losses - mean)
+            return tf.math.reduce_mean(tf.boolean_mask(batch_pol_losses_var_abs, batch_pol_counts>0.))
+
+        if self.rex_type == 'mean_deviation':
+            print('mean_deviation')
+            policy_var_losses = tf.map_fn(determine_mean_deviation, tf.stack((policy_losses, pol_count), axis=-2)) #ToDo: make a flag
+        else:
+            policy_var_losses = tf.map_fn(determine_var, tf.stack((policy_losses, pol_count), axis=-2))
 
         def rex_training_loop_total_losses(policy_var_losses=policy_var_losses, policy_total_losses=policy_total_losses):
             # This function is only run in the REx training loop.
+            if self.rex_type == 'std':
+                print('std')
+                policy_var_losses = tf.math.sqrt(policy_var_losses)
             if self.rex:
                 if self.rex_multiply:
                     rex_tl_loss = self.rex_beta * policy_var_losses + policy_total_losses
@@ -913,6 +980,9 @@ class BNN:
                 else:
                     rex_tl_loss = (1/self.rex_beta) * policy_total_losses
             return rex_tl_loss
+
+        # if self.policy_type not in ['default']:
+        #     policy_total_losses = 5 * tf.reduce_mean(losses, axis=-1)
 
         total_losses = tf.cond(rex_training_loop,
             rex_training_loop_total_losses,
