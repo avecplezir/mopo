@@ -4,6 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gres=gpu:1
+#SBATCH --mem=8000
 ##SBATCH --exclusive
 #SBATCH --time=32:00:00
 #SBATCH --mail-type=FAIL
@@ -25,31 +26,11 @@ mpi_tasks_per_node=$(echo "$SLURM_TASKS_PER_NODE" | sed -e  's/^\([0-9][0-9]*\).
 . /etc/profile.d/modules.sh                # Leave this line (enables the module command)
 module purge                               # Removes all modules still loaded
 module load rhel8/default-amp              # REQUIRED - loads the basic environment
-
-#! Insert additional module load commands after this line if needed:
 module load cuda/10.0 cudnn/7.4_cuda-10.0
 module load miniconda/3
 source ~/rds/rds-dsk-lab-eWkDxBhxBrQ/dimorl/code/mopo/README.mopo.activate
 
 #! Full path to application executable:
-
-application="mopo run_local examples.development \
-            --config=examples.config.d4rl.humanoid_custom_rex \
-            --gpus=1 --trial-gpus=1 \
-            --checkpoint-frequency=100 \
-            --seed 3 \
-            --rex-beta 20 \
-            --exp-name rexb20 \
-            --dataset Humanoid-Expert"
-
-#application="mopo run_local examples.development \
-#            --config=examples.config.d4rl.humanoid_custom \
-#            --gpus=1 --trial-gpus=1 \
-#            --checkpoint-frequency=100 \
-#            --seed 3 \
-#            --rex-beta 0 \
-#            --exp-name default \
-#            --dataset Humanoid-Expert"
 
 #application="mopo run_local examples.development \
 #            --config=examples.config.d4rl.walker2d_custom \
@@ -57,7 +38,187 @@ application="mopo run_local examples.development \
 #            --checkpoint-frequency=100 \
 #            --seed 1 \
 #            --rex-beta 0 \
-#            --exp-name default_vel5 \
+#            --exp-name default-1024 \
+#            --dataset W-MIXED-RT-1"
+
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.walker2d_custom_ra \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 1 \
+#            --rex-beta 5 \
+#            --exp-name rexb5-ra-k05 \
+#            --dataset W-MIXED-RT-1"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.halfcheetah_custom \
+#        --gpu=1 --trial-gpus=1 \
+#        --checkpoint-frequency=100 \
+#        --exp-name=default_s17_hum_branch \
+#        --seed=17 \
+#        --rex 0 \
+#        --rex-beta 0 \
+#        --dataset=MIXED-RT-1"
+
+
+application="mopo run_local examples.development \
+        --config=examples.config.d4rl.halfcheetah_custom \
+        --gpu=1 --trial-gpus=1 \
+        --checkpoint-frequency=100 \
+        --exp-name=default_s18_hum_branch \
+        --seed=18 \
+        --rex-beta 0 \
+        --dataset=MIXED-RT-5"
+
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.walker2d_custom_rex \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 7 \
+#            --rex-beta 5 \
+#            --exp-name rexb5-check-s7 \
+#            --dataset W-MIXED-RT-1"
+
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.walker2d_custom \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 11 \
+#            --rex-beta 0 \
+#            --exp-name default-check-s11 \
+#            --dataset W-MIXED-RT-1"
+
+
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.ant_custom \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 10 \
+#            --rex-beta 0 \
+#            --exp-name default-1024 \
+#            --dataset Ant-Mixed-Expert"
+
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.ant_custom_sr \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 10 \
+#            --rex-beta 0 \
+#            --exp-name default-1024-sr \
+#            --dataset Ant-Mixed-Novice"
+
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.ant_custom \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 10 \
+#            --rex-beta 0 \
+#            --exp-name default-1024 \
+#            --dataset Ant-Mixed-Novice"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.humanoid_custom_rl \
+#        --gpus=1 --trial-gpus=1 \
+#        --checkpoint-frequency=100 \
+#        --seed 1 \
+#        --exp-name default-2048s12_mp0rl10 \
+#        --dataset Humanoid-Mixed-Novice \
+#        --rex-beta 0 \
+#        --bnn-retrain-epochs 0 \
+#        --penalty-coeff 0 \
+#        --rollout-length 10 \
+#        --rollout-batch-size 25000 \
+#        --model-load-dir Humanoid_Humanoid-Mixed-Novice/default-2048/s12_2023-04-13_11-32-35sizc9185"
+
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom_rl_1024 \
+#        --cpus=1 --trial-cpus=1 \
+#        --checkpoint-frequency=100 \
+#        --seed 1 \
+#        --exp-name default-2048s12_mp0rl10 \
+#        --dataset W-MIXED-RT-1  \
+#        --rex-beta 0 \
+#        --bnn-retrain-epochs 0 \
+#        --penalty-coeff 0 \
+#        --rollout-length 10 \
+#        --rollout-batch-size 25000 \
+#        --model-load-dir Walker2d_W-MIXED-RT-1/default-1024-2/s3_2023-04-18_18-11-49km76jrt1"
+
+
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.ant_custom_rl \
+#        --gpus=1 --trial-gpus=1 \
+#        --checkpoint-frequency=100 \
+#        --seed 1 \
+#        --exp-name test \
+#        --dataset Ant-Mixed-Novice \
+#        --rex-beta 0 \
+#        --bnn-retrain-epochs 0 \
+#        --penalty-coeff 0 \
+#        --rollout-length 10 \
+#        --rollout-batch-size 25000 \
+#        --model-load-dir Ant_Ant-Mixed-Novice/default-1024-sr/s10_2023-04-18_16-49-35po4cyah0"
+
+#application="mopo run_local examples.development \
+#        --config=examples.config.d4rl.walker2d_custom_rl \
+#        --gpus=1 --trial-gpus=1 \
+#        --checkpoint-frequency=100 \
+#        --seed 1 \
+#        --exp-name test \
+#        --dataset W-MIXED-RT-1 \
+#        --rex-beta 0 \
+#        --bnn-retrain-epochs 0 \
+#        --penalty-coeff 0 \
+#        --rollout-length 10 \
+#        --rollout-batch-size 25000 \
+#        --model-load-dir Walker2d_W-MIXED-RT-1/rexb20-ra/s1_2023-04-18_13-16-17x3qjukap"
+
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.humanoid_custom_rex_std \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 10 \
+#            --rex-beta 8 \
+#            --exp-name rexstdb8_br_rexF \
+#            --dataset Humanoid-Mixed-Expert"
+
+
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.humanoid_custom_rex \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 10 \
+#            --rex-beta 10 \
+#            --exp-name rexb10_br_rexT \
+#            --dataset Humanoid-Novice-10"
+
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.humanoid_custom \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 4 \
+#            --rex-beta 0 \
+#            --exp-name default_br_rexF \
+#            --dataset Humanoid-Expert-100"
+
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.humanoid_custom \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 4 \
+#            --rex-beta 0 \
+#            --exp-name default \
+#            --dataset Humanoid-Novice-10"
+
+#application="mopo run_local examples.development \
+#            --config=examples.config.d4rl.walker2d_custom \
+#            --gpus=1 --trial-gpus=1 \
+#            --checkpoint-frequency=100 \
+#            --seed 3 \
+#            --rex-beta 0 \
+#            --exp-name default-1024-2 \
 #            --dataset W-MIXED-RT-1"
 
 

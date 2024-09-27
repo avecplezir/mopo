@@ -51,6 +51,9 @@ class MOPO(RLAlgorithm):
             tf_summaries=False,
 
             lr=3e-4,
+            bnn_lr=0.001,
+            improvement_threshold=0.0001,
+            break_train_rex=False,
             reward_scale=1.0,
             target_entropy='auto',
             discount=0.99,
@@ -142,11 +145,11 @@ class MOPO(RLAlgorithm):
         self._writer = Writer(self._log_dir)
         if not train_bnn_only:
             wparams = {**dict(training_environmen=training_environment,
-                              evaluation_environment=evaluation_environment,
-                              policy=policy, Qs=Qs, pool=pool, static_fns=static_fns, plotter=plotter,
-                              tf_summaries=tf_summaries,
-                              lr=lr,
-                              reward_scale=reward_scale,
+                            evaluation_environment=evaluation_environment,
+                            policy=policy, Qs=Qs, pool=pool, static_fns=static_fns, plotter=plotter,
+                            tf_summaries=tf_summaries,
+                            lr=lr,
+                            reward_scale=reward_scale,
                             target_entropy=target_entropy,
                             discount=discount,
                             tau=tau,
@@ -190,6 +193,7 @@ class MOPO(RLAlgorithm):
             self.domain = self._log_dir.split('/')[-3]
             self.exp_seed = self._log_dir.split('/')[-1].split('_')[0]
             self.exp_name = self._log_dir.split('/')[-2]
+            print('creating wandb logger policy!!!')
             self.wlogger = Wandb(wparams, group_name=self.exp_name, name=self.exp_seed, project='_'+self.domain+'_policy')
 
         obs_dim = np.prod(training_environment.active_observation_shape)
@@ -197,6 +201,7 @@ class MOPO(RLAlgorithm):
         self._model_type = model_type
         self._identity_terminal = identity_terminal
         print('model_load_dir', model_load_dir)
+        print('deterministic', deterministic)
         self._model = construct_model(obs_dim=obs_dim, act_dim=act_dim, hidden_dim=hidden_dim,
                                       num_networks=num_networks, num_elites=num_elites,
                                       model_type=model_type, separate_mean_var=separate_mean_var,
@@ -204,7 +209,9 @@ class MOPO(RLAlgorithm):
                                       rex=rex, rex_beta=rex_beta, rex_multiply=rex_multiply, 
                                       lr_decay=lr_decay, log_dir=self._log_dir,
                                       train_bnn_only=train_bnn_only, rex_type=rex_type,
-                                      policy_type=policy_type)
+                                      policy_type=policy_type, bnn_lr=bnn_lr, improvement_threshold=improvement_threshold,
+                                      break_train_rex=break_train_rex,
+                                      wlogger=None)
         self._static_fns = static_fns
         self.fake_env = FakeEnv(self._model, self._static_fns, penalty_coeff=penalty_coeff,
                                 penalty_learned_var=penalty_learned_var)
@@ -306,6 +313,7 @@ class MOPO(RLAlgorithm):
             self._init_training()
 
         self.sampler.initialize(training_environment, policy, pool)
+        print(' self.sampler',  self.sampler)
         print('self.sampler._max_path_length', self.sampler._max_path_length)
 
         gt.reset_root()
@@ -369,7 +377,6 @@ class MOPO(RLAlgorithm):
                     model_rollout_metrics = self._rollout_model(rollout_batch_size=self._rollout_batch_size, deterministic=self._deterministic)
                     model_metrics.update(model_rollout_metrics)
                     time_step_global = self._epoch_length * self._epoch + timestep
-                    # self.wlogger.wandb.log({**{'rollout_model/' + key: value for key, value in model_rollout_metrics.items()}, **{'rollout_model/time_step_global': time_step_global}}, step=time_step_global)
 
                     gt.stamp('epoch_rollout_model')
                     self._training_progress.resume()
@@ -441,6 +448,8 @@ class MOPO(RLAlgorithm):
                     ('time_step_global', time_step_global)
                 )))
 
+                # print('logging diagnostics!')
+                # print('diagnostics', diagnostics)
                 self.wlogger.wandb.log(diagnostics, step=self._total_timestep)
 
             if self._eval_render_mode is not None and hasattr(

@@ -56,15 +56,25 @@ class BNN:
         self.name = get_required_argument(params, 'name', 'Must provide name.')
         self.model_dir = params.get('model_dir', None)
         self._log_dir = params.get('log_dir', None)
+        self.params = params
+        self.break_train_rex = params.get('break_train_rex')
+        print('self.break_train_rex', self.break_train_rex)
+        self.rex_type = params.get('rex_type', 'var')
 
         self.train_bnn_only = params.get('train_bnn_only', None)
         if self.train_bnn_only:
+            print('CREAting wandb logger!!!')
             self.domain = self._log_dir.split('/')[-3]
             self.exp_seed = self._log_dir.split('/')[-1].split('_')[0]
             self.exp_name = self._log_dir.split('/')[-2]
             print('self.exp_name', self.exp_name)
             print("'_'+self.domain+'_bnn'", '_'+self.domain+'_bnn')
+            # if ('mopo' in self.rex_type):
+            #     self.wlogger = params.get('wlogger')
+            # else:
             self.wlogger = Wandb(params, group_name=self.exp_name, name=self.exp_seed, project='_'+self.domain+'_bnn')
+        else:
+            self.wlogger = None
 
         print('[ BNN ] Initializing model: {} | {} networks | {} elites'.format(params['name'], params['num_networks'], params['num_elites']))
         if params.get('sess', None) is None:
@@ -80,13 +90,13 @@ class BNN:
         self.decays, self.optvars, self.nonoptvars = [], [], []
         self.end_act, self.end_act_name = None, None
         self.scaler = None
+        self.bnn_lr = params.get('bnn_lr')
         
         # REx parameters
         self.rex = params.get('rex', False)
         self.rex_beta = float(params.get('rex_beta', 10.0))
         self.rex_multiply = params.get('rex_multiply', False)
         self.lr_decay = float(params.get('lr_decay', 1.0))
-        self.rex_type = params.get('rex_type', 'var')
         self.policy_type = params.get('policy_type', 'default')
         print('self.policy_type ', self.policy_type)
 
@@ -229,6 +239,7 @@ class BNN:
                                                   name="max_log_var")
                     self.min_logvar = tf.Variable(-np.ones([1, self.layers[-1].get_output_dim() // 2])*10., dtype=tf.float32,
                                                   name="min_log_var")
+                    self.policy_losses_ra = tf.Variable(np.zeros([7, 5]), dtype=tf.float32, name="policy_losses_ra") if self.rex_type == 'running_mean' else None
                     for i, layer in enumerate(self.layers):
                         with tf.variable_scope("Layer%i" % i):
                             layer.construct_vars()
@@ -243,6 +254,7 @@ class BNN:
                                                   name="max_log_var")
                     self.min_logvar = tf.Variable(-np.ones([1, self.var_layers[-1].get_output_dim()])*10., dtype=tf.float32,
                                                   name="min_log_var")
+                    self.policy_losses_ra = tf.Variable(np.zeros([7, 5]), dtype=tf.float32, name="policy_losses_ra") if self.rex_type == 'running_mean' else None
                     for i, layer in enumerate(self.layers):
                         with tf.variable_scope("Layer%i_mean" % i):
                             layer.construct_vars()
@@ -255,6 +267,7 @@ class BNN:
                             self.optvars.extend(layer.get_vars())
         self.optvars.extend([self.max_logvar, self.min_logvar])
         self.nonoptvars.extend(self.scaler.get_vars())
+        self.nonoptvars.extend([self.policy_losses_ra]) if self.rex_type == 'running_mean' else None
 
         # Set up training
         with tf.variable_scope(self.name):
@@ -363,7 +376,7 @@ class BNN:
             current = holdout_losses[i]
             _, best = self._snapshots[i]
             improvement = (best - current) / np.abs(best)
-            if improvement > 0.01:
+            if improvement > self.params.get('improvement_threshold'): #.0001:
                 self._snapshots[i] = (epoch, current)
                 self._save_state(i)
                 updated = True
@@ -437,7 +450,7 @@ class BNN:
                                **{f'train/M{i}_pol_tot_loss': train_pol_tot_loss[i] for i in range(len(train_pol_tot_loss))},
                                **{f'train/M{i}_pol_var_loss': train_pol_var_loss[i] for i in range(len(train_pol_var_loss))},
                                **{f'train/P{i}_mean_pol_loss': train_mean_pol_loss[i] for i in range(min(len(train_mean_pol_loss), 5))},
-                                }, step=n_baches)
+                                }, step=n_baches) if self.wlogger else None
 
     def _save_losses(self, total_losses, pol_total_losses, pol_var_losses, mean_pol_losses, n_datapoints, n_baches, epoch, holdout=False):
         """Save the current training/holdout evaluation losses.
@@ -458,7 +471,7 @@ class BNN:
              **{prefix + f'M{i}_pol_total_losses': pol_total_losses[i] for i in range(len(pol_total_losses))},
              **{prefix + f'M{i}_pol_var_losses': pol_var_losses[i] for i in range(len(pol_var_losses))},
              **{prefix + f'P{i}_mean_pol_losses': mean_pol_losses[i] for i in range(min(len(mean_pol_losses), 5))}}
-        self.wlogger.wandb.log(d)
+        self.wlogger.wandb.log(d) if self.wlogger else None
 
 
 
@@ -657,12 +670,21 @@ class BNN:
                 progress.update()
                 t = time.time() - t0
 
+                # if epoch > 2:
+                #     break
                 # Break conditions apply only in the first, standard training loop
                 # In the second loop we force `repeat_dynamics_epochs` times the number of training epochs as in the first loop to be completed
                 print('o_loop', o_loop)
                 if o_loop == 0 and (break_train or (max_grad_updates and grad_updates > max_grad_updates)):
                     print('breaking the first loop')
+                    self._epochs_since_update = 0
                     break
+                    # if break_train_counts > 2:
+                    #     print('breaking the first loop')
+                    #     break
+                    # else:
+                    #     break_train_counts += 1
+                    #     self
                 if max_t and t > max_t:
                     descr = 'Breaking because of timeout: {}! (max: {})'.format(t, max_t)
                     progress.append_description(descr)
@@ -670,6 +692,10 @@ class BNN:
                     print('breaking the second loop')
                     # time.sleep(5)
                     break
+                if self.break_train_rex and o_loop == 1 and break_train:
+                    print('breaking the second loop')
+                    break
+
 
         progress.stamp()
         if timer: timer.stamp('bnn_train')
@@ -901,12 +927,13 @@ class BNN:
         if inc_var_loss:
             # Log-likelihood
             dif2 = tf.square(mean - targets)
-            # mul = tf.constant(np.array([[[1]*9 + [5]*9]], dtype='float32'))
-            # print('mul', mul.shape)
-            # print('dif2', dif2.shape)
-            # dif2 = dif2 * mul
-            # print('dif2[:, :, 9:]', dif2[:, :, 9:].shape)
-            # dif2[:, :, 9:] = dif2[:, :, 9:] * 10
+            if self.rex_type == 'scale_reward':
+                print('scale_reward dif2', dif2.shape)
+                # mul = tf.constant(np.array([[[1]*9 + [20]*9]], dtype='float32'))
+                mul = tf.constant(np.array([[[5] + [1] * (dif2.shape[-1] - 1) ]], dtype='float32'))
+                print('mul', mul.shape)
+                # print('dif2', dif2.shape)
+                dif2 = dif2 * mul
             mse_losses = tf.reduce_mean(dif2 * inv_var, axis=-1, keepdims=True)
             var_losses = tf.reduce_mean(log_var, axis=-1, keepdims=True)
             losses = mse_losses + var_losses
@@ -941,27 +968,47 @@ class BNN:
         mean_policy_losses = tf.reduce_mean(policy_losses, axis=0)
 
         # Add the losses across all the policies. Results in vector of length B
-        if self.policy_type in ['default', 'random_5']:
-            policy_total_losses = tf.reduce_sum(policy_losses, axis=-1)
+        if 'mopo' in self.rex_type:
+            print('mopo rex_type')
+            policy_total_losses = tf.reduce_mean(policy_losses, axis=-1)
         else:
-            policy_total_losses = 5 * tf.reduce_mean(policy_losses, axis=-1)  # compensate for the reduce sum in other policy_types by multiplying by 5
-        #
+            if self.policy_type in ['default', 'random_5']:
+                policy_total_losses = tf.reduce_sum(policy_losses, axis=-1)
+            else:
+                policy_total_losses = 5 * tf.reduce_mean(policy_losses, axis=-1)  # compensate for the reduce sum in other policy_types by multiplying by 5
+
         # Determine the variance of the losses - use boolean mask to ensure only taking variance for
         # policies which appear in the batch (i.e., some batches may not have records for all policies).
-        def determine_var(x):
-            batch_pol_losses, batch_pol_counts = x[0,:], x[1,:]
-            return tf.math.reduce_variance(tf.boolean_mask(batch_pol_losses, batch_pol_counts>0.))
-
-        def determine_mean_deviation(x):
-            batch_pol_losses, batch_pol_counts = x[0,:], x[1,:]
-            mean = tf.math.reduce_mean(tf.boolean_mask(batch_pol_losses, batch_pol_counts>0.))
-            batch_pol_losses_var_abs = tf.math.abs(batch_pol_losses - mean)
-            return tf.math.reduce_mean(tf.boolean_mask(batch_pol_losses_var_abs, batch_pol_counts>0.))
 
         if self.rex_type == 'mean_deviation':
+            def determine_mean_deviation(x):
+                batch_pol_losses, batch_pol_counts = x[0, :], x[1, :]
+                mean = tf.math.reduce_mean(tf.boolean_mask(batch_pol_losses, batch_pol_counts > 0.))
+                batch_pol_losses_var_abs = tf.math.abs(batch_pol_losses - mean)
+                return tf.math.reduce_mean(tf.boolean_mask(batch_pol_losses_var_abs, batch_pol_counts > 0.))
             print('mean_deviation')
-            policy_var_losses = tf.map_fn(determine_mean_deviation, tf.stack((policy_losses, pol_count), axis=-2)) #ToDo: make a flag
+            policy_var_losses = tf.map_fn(determine_mean_deviation, tf.stack((policy_losses, pol_count), axis=-2))
+        elif self.rex_type == 'running_mean':
+            def determine_mean(x):
+                batch_pol_losses, batch_pol_counts = x[0, :], x[1, :]
+                return tf.math.reduce_mean(tf.boolean_mask(batch_pol_losses, batch_pol_counts > 0.))
+            print('running_mean')
+            print('policy_losses', policy_losses.shape)
+            print('pol_count', pol_count.shape)
+            print('self.policy_losses_ra', self.policy_losses_ra)
+            koef = .5
+            self.policy_losses_ra = (1 - koef) * self.policy_losses_ra + koef * policy_losses
+
+            print('self.policy_losses_ra', self.policy_losses_ra.shape)
+            policy_losses_ra_mean = tf.reduce_mean(self.policy_losses_ra, axis=-1, keepdims=True)
+            print('policy_losses_ra_mean', policy_losses_ra_mean.shape)
+            dif2 = (policy_losses - policy_losses_ra_mean) ** 2
+            print('dif2', dif2.shape)
+            policy_var_losses = tf.map_fn(determine_mean, tf.stack((dif2, pol_count), axis=-2))
         else:
+            def determine_var(x):
+                batch_pol_losses, batch_pol_counts = x[0, :], x[1, :]
+                return tf.math.reduce_variance(tf.boolean_mask(batch_pol_losses, batch_pol_counts > 0.))
             policy_var_losses = tf.map_fn(determine_var, tf.stack((policy_losses, pol_count), axis=-2))
 
         def rex_training_loop_total_losses(policy_var_losses=policy_var_losses, policy_total_losses=policy_total_losses):

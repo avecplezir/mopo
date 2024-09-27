@@ -9,7 +9,7 @@ def restore_pool(replay_pool, experiment_root, max_size, save_path=None, policy_
     print("'d4rl' in experiment_root", 'd4rl' in experiment_root)
     if 'd4rl' in experiment_root:
         print('experiment_root[5:]', experiment_root[5:])
-        restore_pool_d4rl(replay_pool, experiment_root[5:])
+        restore_pool_d4rl(replay_pool, experiment_root[5:], policy_type=policy_type)
     else:
         assert os.path.exists(experiment_root)
         if os.path.isdir(experiment_root):
@@ -27,7 +27,7 @@ def restore_pool(replay_pool, experiment_root, max_size, save_path=None, policy_
     print('[ mbpo/off_policy ] Replay pool has size: {}'.format(replay_pool.size))
 
 
-def restore_pool_d4rl(replay_pool, name):
+def restore_pool_d4rl(replay_pool, name, policy_type=None):
     import gym
     import d4rl
     data = d4rl.qlearning_dataset(gym.make(name))
@@ -38,7 +38,63 @@ def restore_pool_d4rl(replay_pool, name):
     data['policies'] = np.zeros_like(data['rewards'])
     data['penalties'] = np.zeros_like(data['rewards'])
 
-    replay_pool.add_samples(data)
+    states, actions, next_states, rewards, dones, policies = \
+        data['observations'], data['actions'], data['next_observations'], data['rewards'], data['terminals'], data['policies']
+
+    print('restore_pool_d4rl states.shape', states.shape)
+
+    done_idx = 0
+    for i in range(len(dones)):
+        done_idx += 1
+        if dones[i]:
+            done_idx = 0
+        if done_idx == 1000:
+            dones[i] = 1
+            done_idx = 0
+
+    def get_limits(arr, N=5):
+        size = len(arr) // N
+        limits = sorted(arr)[::size][1:N]
+        return limits
+
+    if policy_type == 'reward_partioned':
+        limits = get_limits(rewards[:, 0], N=5)
+        rewards_policy = (rewards > limits).sum(-1)
+        policies = rewards_policy[:, None]
+
+    if policy_type in ['trajectory_partitioned', 'value_partitioned']:
+        trajectories = np.zeros_like(policies, dtype=int)
+        cur_trajectory_index = 0
+        for i in range(len(dones)):
+            if dones[i]:
+                cur_trajectory_index += 1
+            trajectories[i] = cur_trajectory_index
+
+        if policy_type == 'trajectory_partitioned':
+            print('policies', policies.shape)
+            policies = trajectories
+        if policy_type == 'value_partitioned':
+            one_hot_trajectories = np.eye(trajectories.max() + 1)[trajectories[:, 0]]
+            sum_rewards_per_tragectories = one_hot_trajectories.T @ rewards
+            n_transactions_per_tragectories = one_hot_trajectories.T.sum(-1)
+            value_transactions_per_tragectories = sum_rewards_per_tragectories[:, 0] / n_transactions_per_tragectories
+            values = value_transactions_per_tragectories[trajectories]
+            limits = get_limits(values[:, 0])
+            value_policy = (values > limits).sum(-1)
+            policies = value_policy[:, None]
+
+    print(f'number of samples in each {policy_type} partition:', [(policies == i).sum() for i in range(int(policies.max()) + 1)])
+
+    replay_pool.add_samples({
+        'observations': states,
+        'actions': actions,
+        'next_observations': next_states,
+        'rewards': rewards,
+        'terminals': dones.astype(bool),
+        'policies': policies,
+        'penalties': np.zeros_like(rewards)
+    })
+
 
 
 def restore_pool_softlearning(replay_pool, experiment_root, max_size, save_path=None):
@@ -139,6 +195,15 @@ def restore_pool_contiguous(replay_pool, load_path, policy_type=None):
         current_end += d
         ends.append(current_end)
     states, actions, next_states, rewards, dones, policies = np.split(data, ends, axis=1)[:6]
+
+    done_idx = 0
+    for i in range(len(dones)):
+        done_idx += 1
+        if dones[i]:
+            done_idx = 0
+        if done_idx == 1000:
+            dones[i] = 1
+            done_idx = 0
 
     def get_limits(arr, N=5):
         size = len(arr) // N
